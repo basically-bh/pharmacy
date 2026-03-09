@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "autoname": "field:user",
+ "creation": "2026-03-09 00:26:35.864026",
+ "description": "Pharmacy-specific extension of the native ERPNext User and Customer relationship. User is created first, Customer Profile can exist before any transaction, and Customer is created lazily on first transaction.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_section",
+  "user",
+  "customer",
+  "national_id",
+  "column_break_identity",
+  "account_status",
+  "profile_completion_status",
+  "preferences_section",
+  "marketing_opt_in",
+  "push_notifications_enabled",
+  "column_break_preferences",
+  "default_address",
+  "default_payment_method"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer_section",
+   "fieldtype": "Section Break",
+   "label": "Customer"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "account_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Account Status",
+   "options": "Active\nInactive\nSuspended"
+  },
+  {
+   "fieldname": "preferences_section",
+   "fieldtype": "Section Break",
+   "label": "Preferences"
+  },
+  {
+   "default": "0",
+   "fieldname": "marketing_opt_in",
+   "fieldtype": "Check",
+   "label": "Marketing Opt In"
+  },
+  {
+   "default": "0",
+   "fieldname": "push_notifications_enabled",
+   "fieldtype": "Check",
+   "label": "Push Notifications Enabled"
+  },
+  {
+   "fieldname": "column_break_preferences",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "default_address",
+   "fieldtype": "Link",
+   "label": "Default Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "default_payment_method",
+   "fieldtype": "Link",
+   "label": "Default Payment Method",
+   "options": "Mode of Payment"
+  },
+  {
+   "default": "Incomplete",
+   "fieldname": "profile_completion_status",
+   "fieldtype": "Select",
+   "label": "Profile Completion Status",
+   "options": "Incomplete\nComplete"
+  },
+  {
+   "fieldname": "national_id",
+   "fieldtype": "Data",
+   "label": "National ID",
+   "unique": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-09 16:07:45.884418",
+ "modified_by": "Administrator",
+ "module": "Pharmacy",
+ "name": "Customer Profile",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "customer,user,national_id",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "user",
+ "track_changes": 1
+}

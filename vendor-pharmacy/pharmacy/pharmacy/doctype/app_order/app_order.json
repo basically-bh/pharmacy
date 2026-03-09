@@ -1,0 +1,197 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-03-09 00:26:35.769050",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_section",
+  "naming_series",
+  "customer_section",
+  "customer_profile",
+  "customer",
+  "prescription",
+  "column_break_customer",
+  "order_status",
+  "order_date",
+  "source",
+  "fulfillment_section",
+  "fulfillment_type",
+  "delivery_address",
+  "column_break_fulfillment",
+  "contact_mobile",
+  "payment_status",
+  "order_total",
+  "notes_section",
+  "customer_notes",
+  "items_section",
+  "items",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "PHO-.YYYY.-",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "PHO-.YYYY.-"
+  },
+  {
+   "fieldname": "customer_section",
+   "fieldtype": "Section Break",
+   "label": "Customer"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "customer_profile",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer Profile",
+   "options": "Customer Profile",
+   "reqd": 1
+  },
+  {
+   "fieldname": "prescription",
+   "fieldtype": "Link",
+   "label": "Prescription",
+   "options": "Prescription"
+  },
+  {
+   "fieldname": "column_break_customer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "order_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Order Status",
+   "options": "Draft\nPending Prescription\nPending Review\nPending Payment\nPending Fulfillment\nOut for Delivery\nCompleted\nCancelled\nFailed"
+  },
+  {
+   "default": "Now",
+   "fieldname": "order_date",
+   "fieldtype": "Datetime",
+   "label": "Order Date"
+  },
+  {
+   "default": "Mobile App",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Mobile App\nManual"
+  },
+  {
+   "fieldname": "fulfillment_section",
+   "fieldtype": "Section Break",
+   "label": "Fulfillment"
+  },
+  {
+   "default": "Delivery",
+   "fieldname": "fulfillment_type",
+   "fieldtype": "Select",
+   "label": "Fulfillment Type",
+   "options": "Delivery\nPickup"
+  },
+  {
+   "fieldname": "delivery_address",
+   "fieldtype": "Link",
+   "label": "Delivery Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "column_break_fulfillment",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_mobile",
+   "fieldtype": "Data",
+   "label": "Contact Mobile"
+  },
+  {
+   "default": "Unpaid",
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "label": "Payment Status",
+   "options": "Unpaid\nPending Authorization\nPaid\nCash on Delivery\nRefunded"
+  },
+  {
+   "fieldname": "order_total",
+   "fieldtype": "Currency",
+   "label": "Order Total"
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "customer_notes",
+   "fieldtype": "Small Text",
+   "label": "Customer Notes"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Order Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "App Order Item"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "App Order",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-03-09 16:14:29.271931",
+ "modified_by": "Administrator",
+ "module": "Pharmacy",
+ "name": "App Order",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "customer,customer_profile,prescription,delivery_address,contact_mobile",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer_profile",
+ "track_changes": 1
+}

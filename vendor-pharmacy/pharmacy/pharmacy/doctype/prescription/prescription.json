@@ -1,0 +1,183 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-03-09 00:26:35.612150",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_section",
+  "naming_series",
+  "customer_section",
+  "customer_profile",
+  "customer",
+  "column_break_customer",
+  "prescription_status",
+  "uploaded_on",
+  "uploaded_by",
+  "file_section",
+  "prescription_file",
+  "doctor_name",
+  "column_break_file",
+  "doctor_license_number",
+  "issue_date",
+  "expiry_date",
+  "review_notes_section",
+  "review_notes",
+  "items_section",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "RX-.YYYY.-",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "RX-.YYYY.-"
+  },
+  {
+   "fieldname": "customer_section",
+   "fieldtype": "Section Break",
+   "label": "Customer"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "customer_profile",
+   "fieldtype": "Link",
+   "label": "Customer Profile",
+   "options": "Customer Profile",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_customer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "prescription_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Prescription Status",
+   "options": "Draft\nSubmitted\nUnder Review\nValidated\nRejected\nExpired\nFulfilled"
+  },
+  {
+   "default": "Now",
+   "fieldname": "uploaded_on",
+   "fieldtype": "Datetime",
+   "label": "Uploaded On"
+  },
+  {
+   "default": "__user",
+   "fieldname": "uploaded_by",
+   "fieldtype": "Link",
+   "label": "Uploaded By",
+   "options": "User"
+  },
+  {
+   "fieldname": "file_section",
+   "fieldtype": "Section Break",
+   "label": "Prescription Details"
+  },
+  {
+   "fieldname": "prescription_file",
+   "fieldtype": "Attach",
+   "label": "Prescription File",
+   "reqd": 1
+  },
+  {
+   "fieldname": "doctor_name",
+   "fieldtype": "Data",
+   "label": "Doctor Name"
+  },
+  {
+   "fieldname": "column_break_file",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "doctor_license_number",
+   "fieldtype": "Data",
+   "label": "Doctor License Number"
+  },
+  {
+   "fieldname": "issue_date",
+   "fieldtype": "Date",
+   "label": "Issue Date"
+  },
+  {
+   "fieldname": "expiry_date",
+   "fieldtype": "Date",
+   "label": "Expiry Date"
+  },
+  {
+   "fieldname": "review_notes_section",
+   "fieldtype": "Section Break",
+   "label": "Review Notes"
+  },
+  {
+   "fieldname": "review_notes",
+   "fieldtype": "Small Text",
+   "label": "Review Notes"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Prescription Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Prescription Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Prescription Validation Log",
+   "link_fieldname": "prescription"
+  },
+  {
+   "link_doctype": "App Order",
+   "link_fieldname": "prescription"
+  }
+ ],
+ "modified": "2026-03-09 15:58:33.264010",
+ "modified_by": "Administrator",
+ "module": "Pharmacy",
+ "name": "Prescription",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "customer,customer_profile,doctor_name,doctor_license_number",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer",
+ "track_changes": 1
+}
