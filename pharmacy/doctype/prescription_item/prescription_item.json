@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-09 00:26:35.925248",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "prescribed_item_name",
+  "approved_item",
+  "column_break_match",
+  "line_status",
+  "approved_qty",
+  "section_break_medication",
+  "dosage",
+  "frequency",
+  "duration_days",
+  "column_break_medication",
+  "prescribed_qty",
+  "instructions"
+ ],
+ "fields": [
+  {
+   "fieldname": "prescribed_item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Prescribed Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "approved_item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Approved Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_match",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "line_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Line Status",
+   "options": "Pending\nApproved\nPartially Approved\nRejected"
+  },
+  {
+   "fieldname": "approved_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Approved Quantity"
+  },
+  {
+   "fieldname": "section_break_medication",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "dosage",
+   "fieldtype": "Data",
+   "label": "Dosage"
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Data",
+   "label": "Frequency"
+  },
+  {
+   "fieldname": "duration_days",
+   "fieldtype": "Int",
+   "label": "Duration (Days)"
+  },
+  {
+   "fieldname": "column_break_medication",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "prescribed_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Prescribed Quantity"
+  },
+  {
+   "fieldname": "instructions",
+   "fieldtype": "Small Text",
+   "label": "Instructions"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-09 16:01:33.083533",
+ "modified_by": "Administrator",
+ "module": "Pharmacy",
+ "name": "Prescription Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

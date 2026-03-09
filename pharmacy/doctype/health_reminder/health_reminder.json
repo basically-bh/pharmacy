@@ -1,0 +1,170 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-09 00:26:35.682967",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_section",
+  "customer",
+  "customer_profile",
+  "column_break_customer",
+  "status",
+  "reminder_type",
+  "details_section",
+  "title",
+  "message",
+  "column_break_details",
+  "reminder_date",
+  "reminder_time",
+  "channel",
+  "reference_section",
+  "reference_prescription",
+  "reference_order",
+  "column_break_reference",
+  "is_recurring",
+  "recurrence_unit"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer_section",
+   "fieldtype": "Section Break",
+   "label": "Customer"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_profile",
+   "fieldtype": "Link",
+   "label": "Customer Profile",
+   "options": "Customer Profile"
+  },
+  {
+   "fieldname": "column_break_customer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nScheduled\nSent\nCompleted\nCancelled"
+  },
+  {
+   "fieldname": "reminder_type",
+   "fieldtype": "Select",
+   "label": "Reminder Type",
+   "options": "Medication Refill\nPrescription Renewal\nGeneral Follow-up\nCustom",
+   "reqd": 1
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Reminder Details"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Small Text",
+   "label": "Message"
+  },
+  {
+   "fieldname": "column_break_details",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reminder_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Reminder Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reminder_time",
+   "fieldtype": "Time",
+   "label": "Reminder Time"
+  },
+  {
+   "default": "In App",
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "label": "Channel",
+   "options": "In App\nSMS\nEmail\nWhatsApp"
+  },
+  {
+   "fieldname": "reference_section",
+   "fieldtype": "Section Break",
+   "label": "References"
+  },
+  {
+   "fieldname": "reference_prescription",
+   "fieldtype": "Link",
+   "label": "Reference Prescription",
+   "options": "Prescription"
+  },
+  {
+   "fieldname": "reference_order",
+   "fieldtype": "Link",
+   "label": "Reference Pharmacy Order",
+   "options": "App Order"
+  },
+  {
+   "fieldname": "column_break_reference",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_recurring",
+   "fieldtype": "Check",
+   "label": "Is Recurring"
+  },
+  {
+   "depends_on": "eval:doc.is_recurring==1",
+   "fieldname": "recurrence_unit",
+   "fieldtype": "Select",
+   "label": "Recurrence",
+   "options": "Daily\nWeekly\nMonthly"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-09 15:53:11.944278",
+ "modified_by": "Administrator",
+ "module": "Pharmacy",
+ "name": "Health Reminder",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "customer,customer_profile,title,reference_prescription,reference_order",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}
