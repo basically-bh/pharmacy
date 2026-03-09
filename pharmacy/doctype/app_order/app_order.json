@@ -51,7 +51,8 @@
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "read_only": 1
   },
   {
    "fieldname": "customer_profile",
@@ -129,7 +130,8 @@
   {
    "fieldname": "order_total",
    "fieldtype": "Currency",
-   "label": "Order Total"
+   "label": "Order Total",
+   "read_only": 1
   },
   {
    "fieldname": "notes_section",

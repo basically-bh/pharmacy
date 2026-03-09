@@ -50,7 +50,8 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "read_only": 1
   },
   {
    "fieldname": "customer_profile",
@@ -75,14 +76,16 @@
    "default": "Now",
    "fieldname": "uploaded_on",
    "fieldtype": "Datetime",
-   "label": "Uploaded On"
+   "label": "Uploaded On",
+   "read_only": 1
   },
   {
    "default": "__user",
    "fieldname": "uploaded_by",
    "fieldtype": "Link",
    "label": "Uploaded By",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   },
   {
    "fieldname": "file_section",

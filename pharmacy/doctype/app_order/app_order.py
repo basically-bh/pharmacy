@@ -3,6 +3,11 @@
 
 from frappe.model.document import Document
 
+from pharmacy.utils.customer_profile import validate_customer_matches_profile
+
 
 class AppOrder(Document):
-	pass
+	"""Mobile-app orchestration document ahead of ERP sales documents."""
+
+	def validate(self) -> None:
+		validate_customer_matches_profile(self)

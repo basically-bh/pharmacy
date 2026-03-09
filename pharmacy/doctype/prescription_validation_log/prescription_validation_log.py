@@ -5,4 +5,4 @@ from frappe.model.document import Document
 
 
 class PrescriptionValidationLog(Document):
-	pass
+	"""Immutable-style audit record for prescription review state changes."""

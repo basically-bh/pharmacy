@@ -117,7 +117,7 @@
   {
    "fieldname": "reference_order",
    "fieldtype": "Link",
-   "label": "Reference Pharmacy Order",
+   "label": "Reference App Order",
    "options": "App Order"
   },
   {
