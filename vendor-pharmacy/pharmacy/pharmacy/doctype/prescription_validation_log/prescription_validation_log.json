@@ -40,13 +40,15 @@
             "fieldname": "performed_by",
             "fieldtype": "Link",
             "label": "Performed By",
-            "options": "User"
+            "options": "User",
+            "read_only": 1
         },
         {
             "default": "Now",
             "fieldname": "performed_on",
             "fieldtype": "Datetime",
-            "label": "Performed On"
+            "label": "Performed On",
+            "read_only": 1
         },
         {
             "fieldname": "status_section",
@@ -56,12 +58,14 @@
         {
             "fieldname": "status_before",
             "fieldtype": "Data",
-            "label": "Status Before"
+            "label": "Status Before",
+            "read_only": 1
         },
         {
             "fieldname": "status_after",
             "fieldtype": "Data",
-            "label": "Status After"
+            "label": "Status After",
+            "read_only": 1
         },
         {
             "fieldname": "remarks",

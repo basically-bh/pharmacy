@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"pharmacy_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Pharmacy Operations</b></span>\",\"col\":12}},{\"id\":\"customer_profile_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Profile\",\"col\":3}},{\"id\":\"prescription_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Prescription\",\"col\":3}},{\"id\":\"pharmacy_order_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Pharmacy Order\",\"col\":3}},{\"id\":\"health_reminder_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Health Reminder\",\"col\":3}},{\"id\":\"supporting_records_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Supporting Records</b></span>\",\"col\":12}},{\"id\":\"supporting_records_card\",\"type\":\"card\",\"data\":{\"card_name\":\"Supporting Records\",\"col\":4}}]",
+ "content": "[{\"id\":\"pharmacy_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Pharmacy Operations</b></span>\",\"col\":12}},{\"id\":\"customer_profile_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Profile\",\"col\":3}},{\"id\":\"prescription_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Prescription\",\"col\":3}},{\"id\":\"app_order_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"App Order\",\"col\":3}},{\"id\":\"health_reminder_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Health Reminder\",\"col\":3}},{\"id\":\"supporting_records_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Supporting Records</b></span>\",\"col\":12}},{\"id\":\"supporting_records_card\",\"type\":\"card\",\"data\":{\"card_name\":\"Supporting Records\",\"col\":4}}]",
  "creation": "2026-03-09 01:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -45,9 +45,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Pharmacy Order Item",
+   "label": "App Order Item",
    "link_count": 0,
-   "link_to": "Pharmacy Order Item",
+   "link_to": "App Order Item",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -84,8 +84,8 @@
   {
    "color": "Blue",
    "doc_view": "List",
-   "label": "Pharmacy Order",
-   "link_to": "Pharmacy Order",
+   "label": "App Order",
+   "link_to": "App Order",
    "stats_filter": "[]",
    "type": "DocType"
   },

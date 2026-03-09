@@ -43,10 +43,10 @@ def _orchestration_link_fields(section_fieldname: str, insert_after: str) -> lis
 	return [
 		_section_break(section_fieldname, "Pharmacy", insert_after),
 		{
-			"fieldname": "pharmacy_order",
-			"label": "Pharmacy Order",
+			"fieldname": "app_order",
+			"label": "App Order",
 			"fieldtype": "Link",
-			"options": "Pharmacy Order",
+			"options": "App Order",
 			"insert_after": section_fieldname,
 		},
 		{
@@ -54,7 +54,7 @@ def _orchestration_link_fields(section_fieldname: str, insert_after: str) -> lis
 			"label": "Prescription",
 			"fieldtype": "Link",
 			"options": "Prescription",
-			"insert_after": "pharmacy_order",
+			"insert_after": "app_order",
 		},
 	]
 

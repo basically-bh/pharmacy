@@ -93,7 +93,8 @@
    "fieldname": "profile_completion_status",
    "fieldtype": "Select",
    "label": "Profile Completion Status",
-   "options": "Incomplete\nComplete"
+   "options": "Incomplete\nComplete",
+   "read_only": 1
   },
   {
    "fieldname": "national_id",

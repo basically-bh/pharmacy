@@ -62,12 +62,14 @@
    "fieldname": "rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Rate"
+   "label": "Rate",
+   "read_only": 1
   },
   {
    "fieldname": "amount",
    "fieldtype": "Currency",
-   "label": "Amount"
+   "label": "Amount",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_status",
