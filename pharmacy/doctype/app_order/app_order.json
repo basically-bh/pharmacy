@@ -2,57 +2,46 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "naming_series:",
- "creation": "2026-03-09 00:26:35.769050",
+ "creation": "2026-03-10 21:30:18.830847",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "naming_section",
-  "naming_series",
   "customer_section",
+  "naming_series",
   "customer_profile",
-  "customer",
-  "prescription",
-  "column_break_customer",
-  "order_status",
-  "order_date",
-  "source",
-  "fulfillment_section",
-  "fulfillment_type",
-  "delivery_address",
-  "column_break_fulfillment",
+  "customer_name",
   "contact_mobile",
-  "payment_status",
-  "order_total",
-  "notes_section",
-  "customer_notes",
+  "customer",
+  "delivery_address",
+  "column_break_apav",
+  "transaction_date",
+  "transaction_time",
+  "source",
+  "order_status",
+  "amended_from",
+  "currency_and_price_list",
+  "company",
+  "currency",
+  "column_break_bzmu",
+  "price_list",
   "items_section",
   "items",
-  "amended_from"
+  "totals_sections",
+  "column_break_efhs",
+  "column_break_zudv",
+  "subtotal",
+  "tax_amount",
+  "grand_total"
  ],
  "fields": [
   {
-   "fieldname": "naming_section",
+   "fieldname": "customer_section",
    "fieldtype": "Section Break"
   },
   {
-   "default": "PHO-.YYYY.-",
    "fieldname": "naming_series",
    "fieldtype": "Select",
-   "hidden": 1,
-   "label": "Naming Series",
-   "options": "PHO-.YYYY.-"
-  },
-  {
-   "fieldname": "customer_section",
-   "fieldtype": "Section Break",
-   "label": "Customer"
-  },
-  {
-   "fieldname": "customer",
-   "fieldtype": "Link",
-   "label": "Customer",
-   "options": "Customer",
-   "read_only": 1
+   "label": "Naming Series"
   },
   {
    "fieldname": "customer_profile",
@@ -63,47 +52,18 @@
    "reqd": 1
   },
   {
-   "fieldname": "prescription",
-   "fieldtype": "Link",
-   "label": "Prescription",
-   "options": "Prescription"
-  },
-  {
-   "fieldname": "column_break_customer",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "Draft",
-   "fieldname": "order_status",
-   "fieldtype": "Select",
+   "fetch_from": "customer_profile.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Order Status",
-   "options": "Draft\nPending Prescription\nPending Review\nPending Payment\nPending Fulfillment\nOut for Delivery\nCompleted\nCancelled\nFailed"
+   "label": "Customer Name",
+   "read_only": 1
   },
   {
-   "default": "Now",
-   "fieldname": "order_date",
-   "fieldtype": "Datetime",
-   "label": "Order Date"
-  },
-  {
-   "default": "Mobile App",
-   "fieldname": "source",
-   "fieldtype": "Select",
-   "label": "Source",
-   "options": "Mobile App\nManual"
-  },
-  {
-   "fieldname": "fulfillment_section",
-   "fieldtype": "Section Break",
-   "label": "Fulfillment"
-  },
-  {
-   "default": "Delivery",
-   "fieldname": "fulfillment_type",
-   "fieldtype": "Select",
-   "label": "Fulfillment Type",
-   "options": "Delivery\nPickup"
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
   },
   {
    "fieldname": "delivery_address",
@@ -112,47 +72,14 @@
    "options": "Address"
   },
   {
-   "fieldname": "column_break_fulfillment",
+   "fieldname": "column_break_apav",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "contact_mobile",
-   "fieldtype": "Data",
-   "label": "Contact Mobile"
-  },
-  {
-   "default": "Unpaid",
-   "fieldname": "payment_status",
+   "fieldname": "source",
    "fieldtype": "Select",
-   "label": "Payment Status",
-   "options": "Unpaid\nPending Authorization\nPaid\nCash on Delivery\nRefunded"
-  },
-  {
-   "fieldname": "order_total",
-   "fieldtype": "Currency",
-   "label": "Order Total",
-   "read_only": 1
-  },
-  {
-   "fieldname": "notes_section",
-   "fieldtype": "Section Break",
-   "label": "Notes"
-  },
-  {
-   "fieldname": "customer_notes",
-   "fieldtype": "Small Text",
-   "label": "Customer Notes"
-  },
-  {
-   "fieldname": "items_section",
-   "fieldtype": "Section Break",
-   "label": "Order Items"
-  },
-  {
-   "fieldname": "items",
-   "fieldtype": "Table",
-   "label": "Items",
-   "options": "App Order Item"
+   "label": "Source",
+   "options": "App\nWhatsApp\nPhone"
   },
   {
    "fieldname": "amended_from",
@@ -163,13 +90,110 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "currency_and_price_list",
+   "fieldtype": "Section Break",
+   "label": "Currency and Price List"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "column_break_bzmu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "price_list",
+   "fieldtype": "Link",
+   "label": "Price List",
+   "link_filters": "[[\"Price List\",\"selling\",\"=\",1],[\"Price List\",\"currency\",\"=\",\"BHD\"]]",
+   "options": "Price List"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "App Order Item"
+  },
+  {
+   "fieldname": "totals_sections",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "fieldname": "column_break_efhs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_zudv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "subtotal",
+   "fieldtype": "Currency",
+   "label": "Subtotal",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tax_amount",
+   "fieldtype": "Currency",
+   "label": "Tax Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "order_status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nPending Review\nPending Payment\nPending Fulfillment\nCompleted\nCancelled"
+  },
+  {
+   "fieldname": "transaction_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "options": "Today"
+  },
+  {
+   "fieldname": "transaction_time",
+   "fieldtype": "Time",
+   "label": "Time",
+   "options": "Now"
+  },
+  {
+   "fieldname": "contact_mobile",
+   "fieldtype": "Data",
+   "label": "Contact Mobile",
+   "options": "Phone",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-09 16:14:29.271931",
+ "modified": "2026-03-11 02:30:20.410033",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "App Order",
@@ -186,14 +210,13 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "customer,customer_profile,prescription,delivery_address,contact_mobile",
- "sort_field": "modified",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "title_field": "customer_profile",
- "track_changes": 1
+ "states": []
 }

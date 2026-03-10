@@ -6,8 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "customer_section",
-  "customer",
   "customer_profile",
+  "customer",
   "column_break_customer",
   "status",
   "reminder_type",
@@ -20,7 +20,6 @@
   "channel",
   "reference_section",
   "reference_prescription",
-  "reference_order",
   "column_break_reference",
   "is_recurring",
   "recurrence_unit"
@@ -36,14 +35,14 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Customer",
-   "options": "Customer",
-   "reqd": 1
+   "options": "Customer"
   },
   {
    "fieldname": "customer_profile",
    "fieldtype": "Link",
    "label": "Customer Profile",
-   "options": "Customer Profile"
+   "options": "Customer Profile",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_customer",
@@ -72,8 +71,7 @@
   {
    "fieldname": "title",
    "fieldtype": "Data",
-   "label": "Title",
-   "reqd": 1
+   "label": "Title"
   },
   {
    "fieldname": "message",
@@ -115,12 +113,6 @@
    "options": "Prescription"
   },
   {
-   "fieldname": "reference_order",
-   "fieldtype": "Link",
-   "label": "Reference App Order",
-   "options": "App Order"
-  },
-  {
    "fieldname": "column_break_reference",
    "fieldtype": "Column Break"
   },
@@ -141,7 +133,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-09 15:53:11.944278",
+ "modified": "2026-03-10 01:42:41.489359",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "Health Reminder",
@@ -161,7 +153,7 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "customer,customer_profile,title,reference_prescription,reference_order",
+ "search_fields": "customer,customer_profile,title,reference_prescription",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

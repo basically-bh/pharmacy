@@ -150,10 +150,6 @@
   {
    "link_doctype": "Prescription Validation Log",
    "link_fieldname": "prescription"
-  },
-  {
-   "link_doctype": "App Order",
-   "link_fieldname": "prescription"
   }
  ],
  "modified": "2026-03-09 15:58:33.264010",

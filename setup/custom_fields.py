@@ -17,6 +17,7 @@ def apply_custom_fields(custom_fields: dict[str, list[dict]]) -> None:
 
 	create_custom_fields(normalized_fields, ignore_validate=True, update=True)
 	_sync_managed_field_metadata(normalized_fields)
+	_migrate_legacy_custom_fields()
 
 	frappe.clear_cache()
 	frappe.db.commit()
@@ -77,3 +78,29 @@ def _sync_managed_field_metadata(custom_fields: dict[str, list[dict]]) -> None:
 			custom_field.flags.ignore_validate = True
 			custom_field.flags.ignore_permissions = True
 			custom_field.save()
+
+
+def _migrate_legacy_custom_fields() -> None:
+	"""Handle one-time renames/removals for app-managed custom fields."""
+	_migrate_item_app_flag()
+
+
+def _migrate_item_app_flag() -> None:
+	"""Rename the legacy Item app toggle from is_pharmacy_item to is_app_item."""
+	legacy_field = "Item-is_pharmacy_item"
+	new_field = "Item-is_app_item"
+
+	if not frappe.db.exists("Custom Field", legacy_field):
+		return
+
+	if frappe.db.exists("Custom Field", new_field):
+		frappe.db.sql(
+			"""
+			update `tabItem`
+			set is_app_item = is_pharmacy_item
+			where ifnull(is_pharmacy_item, 0) != 0
+			  and ifnull(is_app_item, 0) = 0
+			"""
+		)
+
+	frappe.delete_doc("Custom Field", legacy_field, force=1, ignore_missing=True)
