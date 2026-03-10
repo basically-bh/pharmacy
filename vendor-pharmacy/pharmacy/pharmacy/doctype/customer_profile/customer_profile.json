@@ -8,6 +8,7 @@
  "field_order": [
   "customer_section",
   "user",
+  "customer_name",
   "customer",
   "national_id",
   "column_break_identity",
@@ -32,7 +33,7 @@
    "in_list_view": 1,
    "label": "Customer",
    "options": "Customer",
-   "unique": 1
+   "read_only": 1
   },
   {
    "fieldname": "column_break_identity",
@@ -46,6 +47,13 @@
    "options": "User",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fetch_from": "user.full_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name",
+   "read_only": 1
   },
   {
    "default": "Active",
@@ -86,6 +94,7 @@
    "fieldname": "default_payment_method",
    "fieldtype": "Link",
    "label": "Default Payment Method",
+   "link_filters": "[[\"Mode of Payment\",\"is_app_payment_method\",\"=\",1]]",
    "options": "Mode of Payment"
   },
   {
@@ -93,8 +102,7 @@
    "fieldname": "profile_completion_status",
    "fieldtype": "Select",
    "label": "Profile Completion Status",
-   "options": "Incomplete\nComplete",
-   "read_only": 1
+   "options": "Incomplete\nComplete"
   },
   {
    "fieldname": "national_id",
@@ -105,8 +113,21 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-03-09 16:07:45.884418",
+ "links": [
+  {
+   "link_doctype": "Prescription",
+   "link_fieldname": "customer_profile"
+  },
+  {
+   "link_doctype": "Health Reminder",
+   "link_fieldname": "customer_profile"
+  },
+  {
+   "link_doctype": "User",
+   "link_fieldname": "email"
+  }
+ ],
+ "modified": "2026-03-10 12:35:59.926691",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "Customer Profile",
@@ -127,10 +148,10 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "customer,user,national_id",
+ "search_fields": "customer_name,customer,user,national_id",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "user",
+ "title_field": "customer_name",
  "track_changes": 1
 }
