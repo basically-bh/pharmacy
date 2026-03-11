@@ -1,0 +1,233 @@
+from __future__ import annotations
+
+import frappe
+from frappe import _
+from frappe.utils import nowdate
+
+from pharmacy.services.cart_service import get_active_cart_doc_for_profile
+from pharmacy.services.mobile_service import (
+	get_current_customer_profile,
+	raise_invalid_input,
+	raise_not_found,
+)
+from pharmacy.services.order_service import serialize_order_detail
+
+SALES_ORDER_NAMING_SERIES = "SAL-ORD-.YYYY.-"
+
+
+def checkout_cart() -> dict:
+	profile = _get_checkout_profile()
+	cart = get_active_cart_doc_for_profile(profile.name)
+
+	_validate_cart_for_checkout(cart)
+	customer_id = _ensure_customer_for_profile(profile)
+	default_address_id = _ensure_default_address_link(profile, customer_id)
+	cart.reload()
+	sales_order = _create_sales_order_from_cart(
+		cart,
+		customer_id=customer_id,
+		customer_address_id=default_address_id,
+	)
+	_link_checkout_documents(cart, sales_order)
+
+	cart.order_status = "Pending Review"
+	cart.flags.ignore_permissions = True
+	cart.flags.ignore_links = True
+	cart.submit()
+	cart.reload()
+
+	return {
+		"order": serialize_order_detail(cart),
+		"sales_order": {
+			"id": sales_order.name,
+			"status": sales_order.status,
+			"customer_id": sales_order.customer,
+			"transaction_date": sales_order.transaction_date,
+			"grand_total": sales_order.grand_total,
+			"currency": sales_order.currency,
+		},
+	}
+
+
+def _get_checkout_profile() -> frappe._dict:
+	profile = get_current_customer_profile(
+		fields=["name", "user", "customer", "customer_name", "default_address"],
+		required=False,
+	)
+	if not profile:
+		raise_not_found(
+			resource_name="Customer Profile",
+			message=_("Customer Profile not found for the authenticated user."),
+		)
+	return profile
+
+
+def _validate_cart_for_checkout(cart) -> None:
+	items = cart.get("items") or []
+	if not items:
+		raise_invalid_input(
+			message=_("Cart is empty."),
+			details={"field": "items"},
+		)
+
+	for row in items:
+		if not row.item_code:
+			raise_invalid_input(
+				message=_("Cart contains an item without an item_code."),
+				details={"field": "item_code"},
+			)
+		if not row.qty or row.qty <= 0:
+			raise_invalid_input(
+				message=_("Cart contains an invalid quantity."),
+				details={"field": "qty", "item_code": row.item_code},
+			)
+		if row.requires_prescription and not cart.prescription:
+			raise_invalid_input(
+				message=_("Prescription is required for one or more cart items."),
+				details={"field": "prescription"},
+			)
+
+
+def _ensure_customer_for_profile(profile: frappe._dict) -> str:
+	if profile.customer:
+		return profile.customer
+
+	user = (
+		frappe.db.get_value(
+			"User",
+			profile.user,
+			["full_name", "email"],
+			as_dict=True,
+		)
+		if profile.user
+		else None
+	)
+	if not user:
+		raise_not_found(resource_name="User", resource_id=profile.user)
+
+	customer = frappe.new_doc("Customer")
+	customer.customer_name = profile.customer_name or user.full_name or profile.user
+	customer.customer_type = "Individual"
+	customer.customer_group = _get_default_customer_group()
+	customer.territory = _get_default_territory()
+	customer.flags.ignore_permissions = True
+	customer.insert(ignore_permissions=True)
+
+	frappe.db.set_value("Customer Profile", profile.name, "customer", customer.name, update_modified=False)
+	frappe.db.commit()
+	return customer.name
+
+
+def _ensure_default_address_link(profile: frappe._dict, customer_id: str) -> str | None:
+	address_id = profile.default_address or None
+	if not address_id:
+		return None
+
+	if not frappe.db.exists("Address", address_id):
+		raise_not_found(resource_name="Address", resource_id=address_id)
+
+	address = frappe.get_doc("Address", address_id)
+	links = address.get("links") or []
+	has_customer_link = any(
+		row.link_doctype == "Customer" and row.link_name == customer_id
+		for row in links
+	)
+	if not has_customer_link:
+		address.append(
+			"links",
+			{
+				"link_doctype": "Customer",
+				"link_name": customer_id,
+			},
+		)
+		address.flags.ignore_permissions = True
+		address.save(ignore_permissions=True)
+
+	return address_id
+
+
+def _create_sales_order_from_cart(
+	cart,
+	*,
+	customer_id: str,
+	customer_address_id: str | None = None,
+):
+	sales_order = frappe.new_doc("Sales Order")
+	sales_order.flags.ignore_permissions = True
+	sales_order.flags.ignore_links = True
+	sales_order.naming_series = _get_sales_order_naming_series()
+	sales_order.customer = customer_id
+	sales_order.customer_address = customer_address_id
+	sales_order.shipping_address_name = customer_address_id
+	sales_order.company = cart.company
+	sales_order.order_type = "Sales"
+	sales_order.transaction_date = cart.transaction_date or nowdate()
+	sales_order.delivery_date = cart.transaction_date or nowdate()
+	sales_order.currency = cart.currency
+	sales_order.conversion_rate = 1.0
+	sales_order.selling_price_list = cart.price_list
+	sales_order.price_list_currency = cart.currency
+	sales_order.plc_conversion_rate = 1.0
+	sales_order.customer_profile = cart.customer_profile
+	sales_order.prescription = cart.prescription
+
+	for row in cart.get("items") or []:
+		sales_order.append(
+			"items",
+			{
+				"item_code": row.item_code,
+				"item_name": row.item_name,
+				"qty": row.qty,
+				"uom": row.uom,
+				"stock_uom": row.uom,
+				"conversion_factor": 1.0,
+				"rate": row.rate,
+				"price_list_rate": row.rate,
+			},
+		)
+
+	sales_order.set_missing_values()
+	sales_order.customer_address = customer_address_id
+	sales_order.shipping_address_name = customer_address_id
+	# Keep App Order as the pricing source of truth for checkout confirmation.
+	sales_order.total = cart.subtotal or 0
+	sales_order.net_total = cart.subtotal or 0
+	sales_order.base_total = cart.subtotal or 0
+	sales_order.base_net_total = cart.subtotal or 0
+	sales_order.grand_total = cart.grand_total or 0
+	sales_order.rounded_total = cart.grand_total or 0
+	sales_order.base_grand_total = cart.grand_total or 0
+	sales_order.base_rounded_total = cart.grand_total or 0
+	sales_order.total_taxes_and_charges = cart.tax_amount or 0
+	sales_order.base_total_taxes_and_charges = cart.tax_amount or 0
+	sales_order.insert(ignore_permissions=True, ignore_links=True)
+	return sales_order
+
+
+def _link_checkout_documents(cart, sales_order) -> None:
+	sales_order.app_order = cart.name
+	sales_order.flags.ignore_permissions = True
+	sales_order.flags.ignore_links = True
+	sales_order.save(ignore_permissions=True)
+
+	cart.sales_order = sales_order.name
+	cart.flags.ignore_permissions = True
+	cart.flags.ignore_links = True
+	cart.save(ignore_permissions=True)
+
+
+def _get_default_customer_group() -> str:
+	group = frappe.db.get_single_value("Selling Settings", "customer_group")
+	return group or frappe.db.get_value("Customer Group", {"is_group": 0}, "name")
+
+
+def _get_default_territory() -> str:
+	territory = frappe.db.get_single_value("Selling Settings", "territory")
+	return territory or frappe.db.get_value("Territory", {"is_group": 0}, "name")
+
+
+def _get_sales_order_naming_series() -> str:
+	return (
+		frappe.db.get_value("Property Setter", {"doc_type": "Sales Order", "field_name": "naming_series", "property": "default"}, "value")
+		or SALES_ORDER_NAMING_SERIES
+	)

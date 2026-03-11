@@ -10,6 +10,7 @@ from pharmacy.services.cart_service import (
 	remove_item_from_cart as remove_item_from_cart_data,
 	update_cart_item_qty as update_cart_item_qty_data,
 )
+from pharmacy.services.checkout_service import checkout_cart as checkout_cart_data
 from pharmacy.services.order_service import get_order_data, list_order_data
 
 
@@ -50,3 +51,8 @@ def update_cart_item_qty(item_code: str | None = None, qty: int | float | str | 
 @frappe.whitelist()
 def remove_item_from_cart(item_code: str | None = None) -> dict:
 	return execute_api(remove_item_from_cart_data, item_code=item_code)
+
+
+@frappe.whitelist()
+def checkout_cart() -> dict:
+	return execute_api(checkout_cart_data)

@@ -17,6 +17,7 @@ ORDER_LIST_FIELDS = [
 	"name",
 	"customer",
 	"customer_profile",
+	"customer_name",
 	"prescription",
 	"transaction_date",
 	"transaction_time",

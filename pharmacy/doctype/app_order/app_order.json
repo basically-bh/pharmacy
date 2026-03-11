@@ -13,14 +13,17 @@
   "contact_mobile",
   "customer",
   "delivery_address",
+  "prescription",
+  "sales_order",
   "column_break_apav",
   "transaction_date",
   "transaction_time",
   "source",
   "order_status",
+  "column_break_cflf",
+  "company",
   "amended_from",
   "currency_and_price_list",
-  "company",
   "currency",
   "column_break_bzmu",
   "price_list",
@@ -41,6 +44,7 @@
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Naming Series"
   },
   {
@@ -69,7 +73,8 @@
    "fieldname": "delivery_address",
    "fieldtype": "Link",
    "label": "Delivery Address",
-   "options": "Address"
+   "options": "Address",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_apav",
@@ -101,7 +106,9 @@
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
-   "options": "Company"
+   "options": "Company",
+   "remember_last_selected_value": 1,
+   "reqd": 1
   },
   {
    "fieldname": "currency",
@@ -169,17 +176,18 @@
    "options": "Draft\nPending Review\nPending Payment\nPending Fulfillment\nCompleted\nCancelled"
   },
   {
+   "default": "Today",
    "fieldname": "transaction_date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Date",
-   "options": "Today"
+   "reqd": 1
   },
   {
+   "default": "Now",
    "fieldname": "transaction_time",
    "fieldtype": "Time",
-   "label": "Time",
-   "options": "Now"
+   "label": "Time"
   },
   {
    "fieldname": "contact_mobile",
@@ -187,13 +195,30 @@
    "label": "Contact Mobile",
    "options": "Phone",
    "read_only": 1
+  },
+  {
+   "fieldname": "prescription",
+   "fieldtype": "Link",
+   "label": "Prescription",
+   "options": "Prescription"
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Sales Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cflf",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-11 02:30:20.410033",
+ "modified": "2026-03-11 16:08:50.309028",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "App Order",
@@ -201,6 +226,7 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,

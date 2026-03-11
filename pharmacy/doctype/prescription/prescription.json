@@ -11,6 +11,7 @@
   "customer_section",
   "customer_profile",
   "customer",
+  "customer_name",
   "column_break_customer",
   "prescription_status",
   "uploaded_on",
@@ -142,6 +143,13 @@
    "fieldtype": "Table",
    "label": "Items",
    "options": "Prescription Item"
+  },
+  {
+   "fetch_from": "customer_profile.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -152,7 +160,7 @@
    "link_fieldname": "prescription"
   }
  ],
- "modified": "2026-03-09 15:58:33.264010",
+ "modified": "2026-03-11 13:34:37.334596",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "Prescription",
@@ -177,6 +185,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "customer",
+ "title_field": "customer_name",
  "track_changes": 1
 }

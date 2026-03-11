@@ -83,24 +83,67 @@ def _sync_managed_field_metadata(custom_fields: dict[str, list[dict]]) -> None:
 def _migrate_legacy_custom_fields() -> None:
 	"""Handle one-time renames/removals for app-managed custom fields."""
 	_migrate_item_app_flag()
+	_remove_legacy_item_layout_fields()
+	_remove_legacy_selling_layout_fields()
 
 
 def _migrate_item_app_flag() -> None:
-	"""Rename the legacy Item app toggle from is_pharmacy_item to is_app_item."""
+	"""Rename the Item mobile toggle into the current add_to_mobile_app field."""
 	legacy_field = "Item-is_pharmacy_item"
-	new_field = "Item-is_app_item"
+	previous_field = "Item-is_app_item"
+	current_field = "Item-add_to_mobile_app"
 
-	if not frappe.db.exists("Custom Field", legacy_field):
-		return
+	if frappe.db.exists("Custom Field", current_field):
+		if frappe.db.exists("Custom Field", legacy_field):
+			frappe.db.sql(
+				"""
+				update `tabItem`
+				set add_to_mobile_app = is_pharmacy_item
+				where ifnull(is_pharmacy_item, 0) != 0
+				  and ifnull(add_to_mobile_app, 0) = 0
+				"""
+			)
 
-	if frappe.db.exists("Custom Field", new_field):
-		frappe.db.sql(
-			"""
-			update `tabItem`
-			set is_app_item = is_pharmacy_item
-			where ifnull(is_pharmacy_item, 0) != 0
-			  and ifnull(is_app_item, 0) = 0
-			"""
-		)
+		if frappe.db.exists("Custom Field", previous_field):
+			frappe.db.sql(
+				"""
+				update `tabItem`
+				set add_to_mobile_app = is_app_item
+				where ifnull(is_app_item, 0) != 0
+				  and ifnull(add_to_mobile_app, 0) = 0
+				"""
+			)
 
-	frappe.delete_doc("Custom Field", legacy_field, force=1, ignore_missing=True)
+	for field_name in (legacy_field, previous_field):
+		if not frappe.db.exists("Custom Field", field_name):
+			continue
+
+		frappe.delete_doc("Custom Field", field_name, force=1, ignore_missing=True)
+
+
+def _remove_legacy_item_layout_fields() -> None:
+	legacy_fieldnames = [
+		"basically_tab",
+		"basically_classification_section",
+		"basically_classification_column",
+		"basically_product_section",
+		"basically_product_column",
+		"basically_app_section",
+		"basically_app_column",
+	]
+	for fieldname in legacy_fieldnames:
+		custom_field_name = f"Item-{fieldname}"
+		if not frappe.db.exists("Custom Field", custom_field_name):
+			continue
+
+		frappe.delete_doc("Custom Field", custom_field_name, force=1, ignore_missing=True)
+
+
+def _remove_legacy_selling_layout_fields() -> None:
+	for doctype in ("Sales Order", "Sales Invoice", "Delivery Note"):
+		for fieldname in ("pharmacy_section", "pharmacy_order"):
+			custom_field_name = f"{doctype}-{fieldname}"
+			if not frappe.db.exists("Custom Field", custom_field_name):
+				continue
+
+			frappe.delete_doc("Custom Field", custom_field_name, force=1, ignore_missing=True)
