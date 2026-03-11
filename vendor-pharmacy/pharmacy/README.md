@@ -14,10 +14,15 @@ This app follows the standard Frappe layout:
 - `pharmacy/setup/`
 - `pharmacy/templates/`
 - `pharmacy/utils/`
+- `pharmacy/api/` as stable public whitelisted entrypoints
+- `pharmacy/services/` as compatibility imports for existing runtime paths
 - `pharmacy/pharmacy/doctype/`
+- `pharmacy/pharmacy/api/`
+- `pharmacy/pharmacy/services/`
 - `pharmacy/pharmacy/workspace/`
 
 ## Notes
 
 - `App Order` is an app-facing orchestration document and does not replace ERPNext `Sales Order` or `Sales Invoice`.
-- Mobile API handlers live under `pharmacy/api/mobile/`.
+- Mobile API implementation lives under `pharmacy/pharmacy/api/mobile/`.
+- Legacy method paths under `pharmacy/api/mobile/` are preserved as compatibility exports.
