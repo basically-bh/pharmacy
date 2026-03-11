@@ -16,13 +16,13 @@ APP_ORDER_NAMING_SERIES = "AO-.YY."
 
 def get_cart() -> dict:
 	profile = get_current_customer_profile(fields=["name"])
-	cart = _get_active_cart_doc(profile.name, allow_missing=True)
+	cart = get_active_cart_doc_for_profile(profile.name, allow_missing=True)
 	return {"cart": serialize_cart(cart) if cart else None}
 
 
 def create_or_get_cart() -> dict:
 	profile = get_current_customer_profile(fields=["name"])
-	cart = _get_active_cart_doc(profile.name, allow_missing=True)
+	cart = get_active_cart_doc_for_profile(profile.name, allow_missing=True)
 	if not cart:
 		cart = _create_cart(profile.name)
 	return {"cart": serialize_cart(cart)}
@@ -30,7 +30,7 @@ def create_or_get_cart() -> dict:
 
 def add_item_to_cart(item_code: str | None, qty: int | float | str | None) -> dict:
 	profile = get_current_customer_profile(fields=["name"])
-	cart = _get_active_cart_doc(profile.name, allow_missing=True)
+	cart = get_active_cart_doc_for_profile(profile.name, allow_missing=True)
 	if not cart:
 		cart = _create_cart(profile.name)
 
@@ -57,7 +57,7 @@ def add_item_to_cart(item_code: str | None, qty: int | float | str | None) -> di
 
 def update_cart_item_qty(item_code: str | None, qty: int | float | str | None) -> dict:
 	profile = get_current_customer_profile(fields=["name"])
-	cart = _get_active_cart_doc(profile.name)
+	cart = get_active_cart_doc_for_profile(profile.name)
 	item_code = _normalize_item_code(item_code)
 	qty_value = _parse_qty(qty, fieldname="qty")
 
@@ -72,7 +72,7 @@ def update_cart_item_qty(item_code: str | None, qty: int | float | str | None) -
 
 def remove_item_from_cart(item_code: str | None) -> dict:
 	profile = get_current_customer_profile(fields=["name"])
-	cart = _get_active_cart_doc(profile.name)
+	cart = get_active_cart_doc_for_profile(profile.name)
 	item_code = _normalize_item_code(item_code)
 
 	row = _get_cart_item(cart, item_code)
@@ -91,7 +91,7 @@ def serialize_cart(doc) -> dict:
 	return data
 
 
-def _get_active_cart_doc(
+def get_active_cart_doc_for_profile(
 	customer_profile: str,
 	*,
 	allow_missing: bool = False,
@@ -167,12 +167,12 @@ def _validate_cart_item(item_code: str) -> None:
 	item = frappe.db.get_value(
 		"Item",
 		item_code,
-		["name", "is_app_item", "disabled", "is_hidden_in_app"],
+		["name", "add_to_mobile_app", "disabled", "is_hidden_in_app"],
 		as_dict=True,
 	)
 	if not item:
 		raise_not_found(resource_name="Item", resource_id=item_code)
-	if not item.is_app_item or item.disabled or item.is_hidden_in_app:
+	if not item.add_to_mobile_app or item.disabled or item.is_hidden_in_app:
 		raise_invalid_input(
 			message=_("Item {0} is not available for the mobile cart.").format(item_code),
 			details={"item_code": item_code},

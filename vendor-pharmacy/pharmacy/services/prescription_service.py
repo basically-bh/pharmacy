@@ -16,6 +16,7 @@ PRESCRIPTION_LIST_FIELDS = [
 	"name",
 	"customer",
 	"customer_profile",
+	"customer_name",
 	"prescription_status",
 	"uploaded_on",
 	"uploaded_by",

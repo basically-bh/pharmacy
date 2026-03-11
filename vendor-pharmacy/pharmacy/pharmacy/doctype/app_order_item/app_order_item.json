@@ -17,7 +17,9 @@
   "amount",
   "vat_rate",
   "vat_amount",
-  "total_amount"
+  "total_amount",
+  "column_break_xoiq",
+  "line_status"
  ],
  "fields": [
   {
@@ -99,13 +101,23 @@
    "fieldtype": "Check",
    "label": "Requires Prescription",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_xoiq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "line_status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending\nApproved\nPacked\nFulfilled\nCancelled"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-11 00:30:18.586710",
+ "modified": "2026-03-11 03:32:35.924969",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "App Order Item",

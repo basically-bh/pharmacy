@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "field:user",
  "creation": "2026-03-09 00:26:35.864026",
  "description": "Pharmacy-specific extension of the native ERPNext User and Customer relationship. User is created first, Customer Profile can exist before any transaction, and Customer is created lazily on first transaction.",
@@ -32,8 +33,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Customer",
-   "options": "Customer",
-   "read_only": 1
+   "options": "Customer"
   },
   {
    "fieldname": "column_break_identity",
@@ -115,19 +115,23 @@
  "index_web_pages_for_search": 1,
  "links": [
   {
+   "link_doctype": "User",
+   "link_fieldname": "email"
+  },
+  {
+   "link_doctype": "App Order",
+   "link_fieldname": "customer_profile"
+  },
+  {
    "link_doctype": "Prescription",
    "link_fieldname": "customer_profile"
   },
   {
    "link_doctype": "Health Reminder",
    "link_fieldname": "customer_profile"
-  },
-  {
-   "link_doctype": "User",
-   "link_fieldname": "email"
   }
  ],
- "modified": "2026-03-10 12:35:59.926691",
+ "modified": "2026-03-11 15:51:40.266539",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "Customer Profile",
