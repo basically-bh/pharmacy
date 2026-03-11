@@ -5,7 +5,7 @@ app_description = "ERPNext backend layer for Basically Pharmacy"
 app_email = ""
 app_license = "mit"
 
-app_version = "0.0.1"
+app_version = "0.4.0"
 
 required_apps = ["erpnext"]
 
