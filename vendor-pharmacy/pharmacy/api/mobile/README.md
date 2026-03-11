@@ -1,6 +1,6 @@
 # Mobile API Test Guide
 
-Use these read-only calls to smoke-test the mobile API layer locally before wiring the app.
+Use these mobile API calls to smoke-test the backend locally before wiring the app.
 
 ## Bench execute
 
@@ -14,6 +14,11 @@ bench --site <site> execute pharmacy.api.mobile.prescription.list_prescriptions 
 bench --site <site> execute pharmacy.api.mobile.prescription.get_prescription --kwargs '{"prescription_id": "RX-2026-0001"}'
 bench --site <site> execute pharmacy.api.mobile.order.list_orders --kwargs '{"page": 1, "page_size": 5}'
 bench --site <site> execute pharmacy.api.mobile.order.get_order --kwargs '{"order_id": "APP-ORD-0001"}'
+bench --site <site> execute pharmacy.api.mobile.order.get_cart
+bench --site <site> execute pharmacy.api.mobile.order.create_or_get_cart
+bench --site <site> execute pharmacy.api.mobile.order.add_item_to_cart --kwargs '{"item_code": "100103", "qty": 1}'
+bench --site <site> execute pharmacy.api.mobile.order.update_cart_item_qty --kwargs '{"item_code": "100103", "qty": 2}'
+bench --site <site> execute pharmacy.api.mobile.order.remove_item_from_cart --kwargs '{"item_code": "100103"}'
 ```
 
 ## HTTP examples
@@ -41,6 +46,26 @@ curl -X GET "https://<host>/api/method/pharmacy.api.mobile.order.list_orders?pag
 
 curl -X GET "https://<host>/api/method/pharmacy.api.mobile.order.get_order?order_id=APP-ORD-0001" \
   -H "Authorization: token <api_key>:<api_secret>"
+
+curl -X GET "https://<host>/api/method/pharmacy.api.mobile.order.get_cart" \
+  -H "Authorization: token <api_key>:<api_secret>"
+
+curl -X POST "https://<host>/api/method/pharmacy.api.mobile.order.create_or_get_cart" \
+  -H "Authorization: token <api_key>:<api_secret>"
+
+curl -X POST "https://<host>/api/method/pharmacy.api.mobile.order.add_item_to_cart" \
+  -H "Authorization: token <api_key>:<api_secret>" \
+  -d "item_code=100103" \
+  -d "qty=1"
+
+curl -X POST "https://<host>/api/method/pharmacy.api.mobile.order.update_cart_item_qty" \
+  -H "Authorization: token <api_key>:<api_secret>" \
+  -d "item_code=100103" \
+  -d "qty=2"
+
+curl -X POST "https://<host>/api/method/pharmacy.api.mobile.order.remove_item_from_cart" \
+  -H "Authorization: token <api_key>:<api_secret>" \
+  -d "item_code=100103"
 ```
 
 ## Expected error shape
