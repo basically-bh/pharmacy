@@ -19,6 +19,7 @@ bench --site <site> execute pharmacy.api.mobile.order.create_or_get_cart
 bench --site <site> execute pharmacy.api.mobile.order.add_item_to_cart --kwargs '{"item_code": "100103", "qty": 1}'
 bench --site <site> execute pharmacy.api.mobile.order.update_cart_item_qty --kwargs '{"item_code": "100103", "qty": 2}'
 bench --site <site> execute pharmacy.api.mobile.order.remove_item_from_cart --kwargs '{"item_code": "100103"}'
+bench --site <site> execute pharmacy.api.mobile.order.checkout_cart
 ```
 
 ## HTTP examples
@@ -66,6 +67,9 @@ curl -X POST "https://<host>/api/method/pharmacy.api.mobile.order.update_cart_it
 curl -X POST "https://<host>/api/method/pharmacy.api.mobile.order.remove_item_from_cart" \
   -H "Authorization: token <api_key>:<api_secret>" \
   -d "item_code=100103"
+
+curl -X POST "https://<host>/api/method/pharmacy.api.mobile.order.checkout_cart" \
+  -H "Authorization: token <api_key>:<api_secret>"
 ```
 
 ## Expected error shape

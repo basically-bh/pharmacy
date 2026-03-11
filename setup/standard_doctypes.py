@@ -33,7 +33,7 @@ def _app_item_field(
 		"label": label,
 		"fieldtype": fieldtype,
 		"insert_after": insert_after,
-		"depends_on": "eval:doc.is_app_item==1",
+		"depends_on": "eval:doc.add_to_mobile_app==1",
 	}
 	field.update(extra)
 	return field
@@ -41,13 +41,25 @@ def _app_item_field(
 
 def _orchestration_link_fields(section_fieldname: str, insert_after: str) -> list[dict]:
 	return [
-		_section_break(section_fieldname, "Pharmacy", insert_after),
+		{
+			**_section_break(section_fieldname, "Mobile App", insert_after),
+			"collapsible": 1,
+		},
+		{
+			"fieldname": "app_order",
+			"label": "App Order",
+			"fieldtype": "Link",
+			"options": "App Order",
+			"insert_after": section_fieldname,
+			"read_only": 1,
+		},
+		_column_break("mobile_app_column", "app_order"),
 		{
 			"fieldname": "prescription",
 			"label": "Prescription",
 			"fieldtype": "Link",
 			"options": "Prescription",
-			"insert_after": section_fieldname,
+			"insert_after": "mobile_app_column",
 		},
 	]
 
@@ -57,17 +69,17 @@ def _orchestration_link_fields(section_fieldname: str, insert_after: str) -> lis
 STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 	"Item": [
 		{
-			"fieldname": "basically_tab",
-			"label": "Basically",
+			"fieldname": "mobile_app_tab",
+			"label": "Mobile App",
 			"fieldtype": "Tab Break",
 			"insert_after": "default_item_manufacturer",
 		},
-		_section_break("basically_classification_section", "Classification", "basically_tab"),
+		_section_break("mobile_app_classification_section", "Classification", "mobile_app_tab"),
 		_app_item_field(
-			"is_app_item",
-			"Is App Item",
+			"add_to_mobile_app",
+			"Add to Mobile App",
 			"Check",
-			"basically_classification_section",
+			"mobile_app_classification_section",
 			default="0",
 			depends_on="",
 		),
@@ -75,7 +87,7 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"product_type",
 			"Product Type",
 			"Select",
-			"is_app_item",
+			"add_to_mobile_app",
 			options="\nMedicine\nSupplement\nMedical Device\nPersonal Care",
 		),
 		_app_item_field(
@@ -92,12 +104,12 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"requires_prescription",
 			default="0",
 		),
-		_column_break("basically_classification_column", "requires_pharmacist_review"),
+		_column_break("mobile_app_classification_column", "requires_pharmacist_review"),
 		_app_item_field(
 			"nhra_registration_no",
 			"NHRA Registration No",
 			"Data",
-			"basically_classification_column",
+			"mobile_app_classification_column",
 		),
 		_app_item_field(
 			"regulated_price",
@@ -105,22 +117,22 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"Currency",
 			"nhra_registration_no",
 		),
-		_section_break("basically_product_section", "Product Details", "regulated_price"),
+		_section_break("mobile_app_product_section", "Product Details", "regulated_price"),
 		_app_item_field(
 			"active_ingredient",
 			"Active Ingredient",
 			"Data",
-			"basically_product_section",
+			"mobile_app_product_section",
 		),
 		_app_item_field("strength", "Strength", "Data", "active_ingredient"),
 		_app_item_field("form", "Form", "Data", "strength"),
 		_app_item_field("pack_size", "Pack Size", "Data", "form"),
-		_column_break("basically_product_column", "pack_size"),
+		_column_break("mobile_app_product_column", "pack_size"),
 		_app_item_field(
 			"refill_eligible",
 			"Refill Eligible",
 			"Check",
-			"basically_product_column",
+			"mobile_app_product_column",
 			default="0",
 		),
 		_app_item_field(
@@ -132,22 +144,22 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 		),
 		_app_item_field("min_patient_age", "Min Patient Age", "Int", "subscription_eligible"),
 		_app_item_field("max_patient_age", "Max Patient Age", "Int", "min_patient_age"),
-		_section_break("basically_app_section", "App Experience", "max_patient_age"),
+		_section_break("mobile_app_section", "App Experience", "max_patient_age"),
 		_app_item_field(
 			"is_hidden_in_app",
 			"Is Hidden in App",
 			"Check",
-			"basically_app_section",
+			"mobile_app_section",
 			default="0",
 		),
 		_app_item_field("featured", "Featured", "Check", "is_hidden_in_app", default="0"),
 		_app_item_field("sort_order", "Sort Order", "Int", "featured", default="0"),
-		_column_break("basically_app_column", "sort_order"),
+		_column_break("mobile_app_column", "sort_order"),
 		_app_item_field(
 			"app_short_description",
 			"App Short Description",
 			"Small Text",
-			"basically_app_column",
+			"mobile_app_column",
 		),
 		_app_item_field(
 			"app_long_description",
@@ -179,7 +191,7 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"default": "0",
 		},
 	],
-	"Sales Order": _orchestration_link_fields("pharmacy_section", "additional_info_section"),
-	"Sales Invoice": _orchestration_link_fields("pharmacy_section", "more_information"),
-	"Delivery Note": _orchestration_link_fields("pharmacy_section", "more_info"),
+	"Sales Order": _orchestration_link_fields("mobile_app_section", "total_commission"),
+	"Sales Invoice": _orchestration_link_fields("mobile_app_section", "total_commission"),
+	"Delivery Note": _orchestration_link_fields("mobile_app_section", "total_commission"),
 }
