@@ -35,7 +35,6 @@ PRODUCT_FIELDS = [
 	"min_patient_age",
 	"max_patient_age",
 	"featured",
-	"sort_order",
 	"app_short_description",
 	"app_long_description",
 	"search_keywords",
@@ -55,7 +54,6 @@ def list_product_data(
 	filters = {
 		"show_in_mobile_app": 1,
 		"disabled": 0,
-		"is_hidden_in_app": 0,
 	}
 	if product_type:
 		filters["product_type"] = product_type
@@ -84,7 +82,7 @@ def list_product_data(
 		fields=PRODUCT_FIELDS,
 		filters=filters,
 		or_filters=or_filters,
-		order_by="featured desc, sort_order asc, item_name asc",
+		order_by="featured desc, item_name asc",
 		limit_start=offset,
 		limit_page_length=size,
 	)
@@ -123,7 +121,6 @@ def get_product_data(product_id: str | None = None) -> dict:
 			"name": product_name,
 			"show_in_mobile_app": 1,
 			"disabled": 0,
-			"is_hidden_in_app": 0,
 		},
 		PRODUCT_FIELDS,
 		as_dict=True,
@@ -201,7 +198,7 @@ def serialize_product_detail(
 			"discovery": {
 				"keywords": _split_csv(product.search_keywords),
 				"symptom_tags": _split_csv(product.symptom_tags),
-				"sort_order": product.sort_order or 0,
+				"sort_order": 0,
 			},
 		}
 	)
