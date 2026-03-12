@@ -153,13 +153,11 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			default="0",
 		),
 		_app_item_field("featured", "Featured", "Check", "is_hidden_in_app", default="0"),
-		_app_item_field("sort_order", "Sort Order", "Int", "featured", default="0"),
-		_column_break("mobile_app_column", "sort_order"),
 		_app_item_field(
 			"app_short_description",
 			"App Short Description",
 			"Small Text",
-			"mobile_app_column",
+			"featured",
 		),
 		_app_item_field(
 			"app_long_description",
