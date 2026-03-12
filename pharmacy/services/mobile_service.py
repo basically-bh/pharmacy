@@ -220,7 +220,7 @@ def get_owned_resource_name(
 		raise_not_found(resource_name=label, resource_id=resource_id)
 	if resource.get(profile_field) != profile_name:
 		raise_forbidden(
-			_("You do not have access to {0} {1}.").format(label, resource_id),
+			message=_("You do not have access to this {0}.").format(label.lower()),
 			details={"resource": label, "resource_id": resource_id},
 		)
 	return resource.name

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import frappe
 
-from pharmacy.services.mobile_service import execute_api
 from pharmacy.services.catalog_service import list_product_data
+from pharmacy.services.mobile_service import execute_api
 from pharmacy.services.order_service import list_order_data
 from pharmacy.services.profile_service import get_profile_data
 

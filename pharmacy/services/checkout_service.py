@@ -189,7 +189,6 @@ def _create_sales_order_from_cart(
 	sales_order.set_missing_values()
 	sales_order.customer_address = customer_address_id
 	sales_order.shipping_address_name = customer_address_id
-	# Keep App Order as the pricing source of truth for checkout confirmation.
 	sales_order.total = cart.subtotal or 0
 	sales_order.net_total = cart.subtotal or 0
 	sales_order.base_total = cart.subtotal or 0
