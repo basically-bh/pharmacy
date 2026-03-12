@@ -4,30 +4,25 @@ Pharmacy is a Frappe app for pharmacy-specific workflows and data models.
 
 ## Structure
 
-This repository contains the app root only:
+This app follows the standard Frappe layout:
 
-- `config`
-- `hooks.py`
-- `modules.txt`
-- `patches`
-- `pharmacy`
-- `public`
-- `setup`
-- `templates`
-- `utils`
-
-## Current App Order Scope
-
-The current `App Order` implementation is an app-facing orchestration document. It is not intended to replace ERPNext `Sales Order` or `Sales Invoice`.
-
-Implemented behavior includes:
-
-- parent defaults for company, currency, price list, contact mobile, and delivery address
-- item price lookup using ERPNext selling price logic with pricing rule evaluation
-- VAT rate resolution from existing item tax setup
-- row and document total calculations
+- `pyproject.toml`
+- `README.md`
+- `setup.py`
+- `requirements.txt`
+- `pharmacy/hooks.py`
+- `pharmacy/modules.txt`
+- `pharmacy/config/`
+- `pharmacy/public/`
+- `pharmacy/setup/`
+- `pharmacy/templates/`
+- `pharmacy/utils/`
+- `pharmacy/api/`
+- `pharmacy/services/`
+- `pharmacy/pharmacy/doctype/`
+- `pharmacy/pharmacy/workspace/`
 
 ## Notes
 
-- Exchange-rate handling is intentionally kept out of the current `App Order` flow.
-- Additional workflow and API behavior can be added incrementally on top of this baseline.
+- `App Order` is an app-facing orchestration document and does not replace ERPNext `Sales Order` or `Sales Invoice`.
+- Mobile API implementation lives under `pharmacy/api/mobile/`.

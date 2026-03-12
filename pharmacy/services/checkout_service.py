@@ -49,6 +49,53 @@ def checkout_cart() -> dict:
 	}
 
 
+def prepare_app_order_for_submission(app_order) -> None:
+	"""Create the ERP commercial documents required by a submitted App Order.
+
+	App Order is the orchestration document. On first submit we lazily create:
+	- Customer, if the linked Customer Profile does not have one yet
+	- Customer/address linkage, using the order's chosen delivery address
+	- Sales Order, linked back to the App Order
+	"""
+	if app_order.sales_order and frappe.db.exists("Sales Order", app_order.sales_order):
+		if not app_order.customer:
+			app_order.customer = frappe.db.get_value("Sales Order", app_order.sales_order, "customer")
+		if not app_order.order_status:
+			app_order.order_status = "Pending Review"
+		return
+
+	profile = frappe.db.get_value(
+		"Customer Profile",
+		app_order.customer_profile,
+		["name", "user", "customer", "customer_name", "default_address"],
+		as_dict=True,
+	)
+	if not profile:
+		raise_not_found(resource_name="Customer Profile", resource_id=app_order.customer_profile)
+
+	customer_id = _ensure_customer_for_profile(profile)
+	address_id = _ensure_default_address_link(
+		profile,
+		customer_id,
+		preferred_address_id=app_order.delivery_address,
+	)
+	sales_order = _create_sales_order_from_cart(
+		app_order,
+		customer_id=customer_id,
+		customer_address_id=address_id,
+	)
+
+	sales_order.app_order = app_order.name
+	sales_order.flags.ignore_permissions = True
+	sales_order.flags.ignore_links = True
+	sales_order.save(ignore_permissions=True)
+
+	app_order.customer = customer_id
+	app_order.delivery_address = address_id or app_order.delivery_address
+	app_order.sales_order = sales_order.name
+	app_order.order_status = "Pending Review"
+
+
 def _get_checkout_profile() -> frappe._dict:
 	profile = get_current_customer_profile(
 		fields=["name", "user", "customer", "customer_name", "default_address"],
@@ -118,8 +165,13 @@ def _ensure_customer_for_profile(profile: frappe._dict) -> str:
 	return customer.name
 
 
-def _ensure_default_address_link(profile: frappe._dict, customer_id: str) -> str | None:
-	address_id = profile.default_address or None
+def _ensure_default_address_link(
+	profile: frappe._dict,
+	customer_id: str,
+	*,
+	preferred_address_id: str | None = None,
+) -> str | None:
+	address_id = preferred_address_id or profile.default_address or None
 	if not address_id:
 		return None
 
@@ -142,6 +194,10 @@ def _ensure_default_address_link(profile: frappe._dict, customer_id: str) -> str
 		)
 		address.flags.ignore_permissions = True
 		address.save(ignore_permissions=True)
+
+	if not profile.default_address:
+		frappe.db.set_value("Customer Profile", profile.name, "default_address", address_id, update_modified=False)
+		profile.default_address = address_id
 
 	return address_id
 
@@ -189,7 +245,6 @@ def _create_sales_order_from_cart(
 	sales_order.set_missing_values()
 	sales_order.customer_address = customer_address_id
 	sales_order.shipping_address_name = customer_address_id
-	# Keep App Order as the pricing source of truth for checkout confirmation.
 	sales_order.total = cart.subtotal or 0
 	sales_order.net_total = cart.subtotal or 0
 	sales_order.base_total = cart.subtotal or 0

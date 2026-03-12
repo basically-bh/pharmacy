@@ -10,6 +10,7 @@ from frappe.utils import flt
 
 from erpnext.accounts.doctype.pricing_rule.pricing_rule import get_pricing_rule_for_item
 from erpnext.stock.get_item_details import get_price_list_rate
+from pharmacy.services.checkout_service import prepare_app_order_for_submission
 from pharmacy.utils.customer_profile import validate_customer_matches_profile
 from pharmacy.utils.vat import calculate_vat_amount, get_applicable_item_vat_rate
 
@@ -22,13 +23,44 @@ class AppOrder(Document):
 		self.apply_item_pricing()
 		self.calculate_totals()
 
+	def before_submit(self) -> None:
+		prepare_app_order_for_submission(self)
+
 	@frappe.whitelist()
 	def refresh_pricing_for_form(self) -> dict:
 		self.set_parent_defaults()
 		self.sync_customer_profile_details()
 		self.apply_item_pricing()
 		self.calculate_totals()
-		return self.as_dict()
+		return self.get_pricing_refresh_payload()
+
+	def get_pricing_refresh_payload(self) -> dict:
+		return {
+			"customer": self.customer,
+			"contact_mobile": self.contact_mobile,
+			"delivery_address": self.delivery_address,
+			"company": self.company,
+			"currency": self.currency,
+			"price_list": self.price_list,
+			"subtotal": self.subtotal,
+			"tax_amount": self.tax_amount,
+			"grand_total": self.grand_total,
+			"items": [
+				{
+					"name": row.name,
+					"item_code": row.item_code,
+					"item_name": row.item_name,
+					"uom": row.uom,
+					"qty": row.qty,
+					"rate": row.rate,
+					"amount": row.amount,
+					"vat_rate": row.vat_rate,
+					"vat_amount": row.vat_amount,
+					"total_amount": row.total_amount,
+				}
+				for row in (self.get("items") or [])
+			],
+		}
 
 	def set_parent_defaults(self) -> None:
 		if not self.price_list:
@@ -53,10 +85,15 @@ class AppOrder(Document):
 		if not profile:
 			return
 
-		self.customer = profile.customer
-		self.delivery_address = profile.default_address
+		# Customer Profile provides defaults for the order, but it should not
+		# erase values the user selected directly on the App Order form.
+		if profile.customer:
+			self.customer = profile.customer
 
-		if profile.user:
+		if profile.default_address and not self.delivery_address:
+			self.delivery_address = profile.default_address
+
+		if profile.user and not self.contact_mobile:
 			self.contact_mobile = frappe.db.get_value("User", profile.user, "mobile_no")
 
 	def apply_item_pricing(self) -> None:
@@ -178,3 +215,16 @@ class AppOrder(Document):
 		row.vat_rate = 0.0
 		row.vat_amount = 0.0
 		row.total_amount = 0.0
+
+
+@frappe.whitelist()
+def refresh_app_order_pricing(doc: dict | str) -> dict:
+	if isinstance(doc, str):
+		doc = frappe.parse_json(doc)
+
+	app_order = frappe.get_doc(doc)
+	app_order.set_parent_defaults()
+	app_order.sync_customer_profile_details()
+	app_order.apply_item_pricing()
+	app_order.calculate_totals()
+	return app_order.get_pricing_refresh_payload()
