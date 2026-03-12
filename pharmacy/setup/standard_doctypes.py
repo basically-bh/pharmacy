@@ -127,12 +127,11 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 		_app_item_field("strength", "Strength", "Data", "active_ingredient"),
 		_app_item_field("form", "Form", "Data", "strength"),
 		_app_item_field("pack_size", "Pack Size", "Data", "form"),
-		_column_break("mobile_app_product_column", "pack_size"),
 		_app_item_field(
 			"refill_eligible",
 			"Refill Eligible",
 			"Check",
-			"mobile_app_product_column",
+			"pack_size",
 			default="0",
 		),
 		_app_item_field(
