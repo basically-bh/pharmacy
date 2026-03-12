@@ -47,6 +47,7 @@
    "label": "Customer"
   },
   {
+   "fetch_from": "customer_profile.customer",
    "fieldname": "customer",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -160,7 +161,7 @@
    "link_fieldname": "prescription"
   }
  ],
- "modified": "2026-03-11 13:34:37.334596",
+ "modified": "2026-03-12 11:27:29.319352",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "Prescription",

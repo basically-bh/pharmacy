@@ -6,7 +6,7 @@ from pharmacy.services.catalog_service import get_product_data, list_product_dat
 from pharmacy.services.mobile_service import execute_api
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def list_products(
 	search: str | None = None,
 	page: int | str = 1,
@@ -24,6 +24,6 @@ def list_products(
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_product(product_id: str | None = None, id: str | None = None) -> dict:
 	return execute_api(get_product_data, product_id=product_id or id)
