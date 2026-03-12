@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+SHOW_IN_APP_DEPENDS_ON = "eval:doc.show_in_mobile_app==1"
+DETAILS_SECTION_DEPENDS_ON = "eval:['Medicine', 'Supplement'].includes(doc.product_type)"
+MEDICINE_ONLY_DEPENDS_ON = "eval:doc.product_type=='Medicine'"
+
 
 def _section_break(fieldname: str, label: str | None = None, insert_after: str | None = None) -> dict:
 	field = {
@@ -33,7 +37,7 @@ def _app_item_field(
 		"label": label,
 		"fieldtype": fieldtype,
 		"insert_after": insert_after,
-		"depends_on": "eval:doc.show_in_mobile_app==1",
+		"depends_on": SHOW_IN_APP_DEPENDS_ON,
 	}
 	field.update(extra)
 	return field
@@ -74,28 +78,41 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"fieldtype": "Tab Break",
 			"insert_after": "default_item_manufacturer",
 		},
-		_section_break("mobile_app_classification_section", "Classification", "mobile_app_tab"),
+		_section_break("mobile_app_visibility_section", "Visibility", "mobile_app_tab"),
 		_app_item_field(
 			"show_in_mobile_app",
 			"Show in Mobile App",
 			"Check",
-			"mobile_app_classification_section",
+			"mobile_app_visibility_section",
 			default="0",
 			depends_on="",
+		),
+		_section_break("mobile_app_classification_section", "Classification", "show_in_mobile_app"),
+		_app_item_field(
+			"featured",
+			"Featured",
+			"Check",
+			"mobile_app_classification_section",
+			default="0",
 		),
 		_app_item_field(
 			"product_type",
 			"Product Type",
 			"Select",
-			"show_in_mobile_app",
+			"featured",
 			options="\nMedicine\nSupplement\nMedical Device\nPersonal Care",
 		),
+		{
+			**_section_break("mobile_app_product_section", "Details", "product_type"),
+			"depends_on": DETAILS_SECTION_DEPENDS_ON,
+		},
 		_app_item_field(
 			"requires_prescription",
 			"Requires Prescription",
 			"Check",
-			"product_type",
+			"mobile_app_product_section",
 			default="0",
+			depends_on=MEDICINE_ONLY_DEPENDS_ON,
 		),
 		_app_item_field(
 			"requires_pharmacist_review",
@@ -103,37 +120,48 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"Check",
 			"requires_prescription",
 			default="0",
+			depends_on=MEDICINE_ONLY_DEPENDS_ON,
 		),
-		_column_break("mobile_app_classification_column", "requires_pharmacist_review"),
 		_app_item_field(
 			"nhra_registration_no",
 			"NHRA Registration No",
 			"Data",
-			"mobile_app_classification_column",
+			"requires_pharmacist_review",
+			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
 		_app_item_field(
 			"regulated_price",
 			"Regulated Price",
 			"Currency",
 			"nhra_registration_no",
+			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
-		_section_break("mobile_app_product_section", "Product Details", "regulated_price"),
 		_app_item_field(
 			"active_ingredient",
 			"Active Ingredient",
 			"Data",
-			"mobile_app_product_section",
+			"regulated_price",
+			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
-		_app_item_field("strength", "Strength", "Data", "active_ingredient"),
-		_app_item_field("form", "Form", "Data", "strength"),
-		_app_item_field("pack_size", "Pack Size", "Data", "form"),
-		_column_break("mobile_app_product_column", "pack_size"),
+		_app_item_field("strength", "Strength", "Data", "active_ingredient", depends_on=DETAILS_SECTION_DEPENDS_ON),
+		_app_item_field("form", "Form", "Data", "strength", depends_on=DETAILS_SECTION_DEPENDS_ON),
+		_app_item_field("pack_size", "Pack Size", "Data", "form", depends_on=DETAILS_SECTION_DEPENDS_ON),
+		_app_item_field("manufacturer", "Manufacturer", "Data", "pack_size", depends_on=DETAILS_SECTION_DEPENDS_ON),
+		_app_item_field(
+			"country_of_origin",
+			"Country of Origin",
+			"Link",
+			"manufacturer",
+			options="Country",
+			depends_on=DETAILS_SECTION_DEPENDS_ON,
+		),
 		_app_item_field(
 			"refill_eligible",
 			"Refill Eligible",
 			"Check",
-			"mobile_app_product_column",
+			"country_of_origin",
 			default="0",
+			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
 		_app_item_field(
 			"subscription_eligible",
@@ -141,25 +169,22 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"Check",
 			"refill_eligible",
 			default="0",
+			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
-		_app_item_field("min_patient_age", "Min Patient Age", "Int", "subscription_eligible"),
-		_app_item_field("max_patient_age", "Max Patient Age", "Int", "min_patient_age"),
-		_section_break("mobile_app_section", "App Experience", "max_patient_age"),
 		_app_item_field(
-			"is_hidden_in_app",
-			"Is Hidden in App",
-			"Check",
-			"mobile_app_section",
-			default="0",
+			"min_patient_age",
+			"Min Patient Age",
+			"Int",
+			"subscription_eligible",
+			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
-		_app_item_field("featured", "Featured", "Check", "is_hidden_in_app", default="0"),
-		_app_item_field("sort_order", "Sort Order", "Int", "featured", default="0"),
-		_column_break("mobile_app_column", "sort_order"),
+		_app_item_field("max_patient_age", "Max Patient Age", "Int", "min_patient_age", depends_on=DETAILS_SECTION_DEPENDS_ON),
+		_section_break("mobile_app_section", "App Experience", "product_type"),
 		_app_item_field(
 			"app_short_description",
 			"App Short Description",
 			"Small Text",
-			"mobile_app_column",
+			"mobile_app_section",
 		),
 		_app_item_field(
 			"app_long_description",
