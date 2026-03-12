@@ -19,7 +19,7 @@ PRODUCT_FIELDS = [
 	"description",
 	"stock_uom",
 	"disabled",
-	"add_to_mobile_app",
+	"show_in_mobile_app",
 	"product_type",
 	"requires_prescription",
 	"requires_pharmacist_review",
@@ -52,7 +52,7 @@ def list_product_data(
 ) -> dict:
 	page_number, size, offset = parse_pagination(page, page_size)
 	filters = {
-		"add_to_mobile_app": 1,
+		"show_in_mobile_app": 1,
 		"disabled": 0,
 		"is_hidden_in_app": 0,
 	}
@@ -115,7 +115,7 @@ def get_product_data(product_id: str | None = None) -> dict:
 		"Item",
 		{
 			"name": product_name,
-			"add_to_mobile_app": 1,
+			"show_in_mobile_app": 1,
 			"disabled": 0,
 			"is_hidden_in_app": 0,
 		},

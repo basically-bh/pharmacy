@@ -33,7 +33,7 @@ def _app_item_field(
 		"label": label,
 		"fieldtype": fieldtype,
 		"insert_after": insert_after,
-		"depends_on": "eval:doc.add_to_mobile_app==1",
+		"depends_on": "eval:doc.show_in_mobile_app==1",
 	}
 	field.update(extra)
 	return field
@@ -76,8 +76,8 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 		},
 		_section_break("mobile_app_classification_section", "Classification", "mobile_app_tab"),
 		_app_item_field(
-			"add_to_mobile_app",
-			"Add to Mobile App",
+			"show_in_mobile_app",
+			"Show in Mobile App",
 			"Check",
 			"mobile_app_classification_section",
 			default="0",
@@ -87,7 +87,7 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"product_type",
 			"Product Type",
 			"Select",
-			"add_to_mobile_app",
+			"show_in_mobile_app",
 			options="\nMedicine\nSupplement\nMedical Device\nPersonal Care",
 		),
 		_app_item_field(
@@ -181,6 +181,34 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"search_keywords",
 			description="Comma-separated symptom tags for app discovery and recommendations.",
 		),
+	],
+	"Item Group": [
+		{
+			"fieldname": "mobile_app_section",
+			"label": "Mobile App",
+			"fieldtype": "Section Break",
+			"insert_after": "image",
+		},
+		{
+			"fieldname": "show_in_mobile_app",
+			"label": "Show in Mobile App",
+			"fieldtype": "Check",
+			"insert_after": "mobile_app_section",
+			"default": "0",
+		},
+		{
+			"fieldname": "mobile_app_sf_symbol",
+			"label": "Mobile App Icon",
+			"fieldtype": "Data",
+			"insert_after": "show_in_mobile_app",
+		},
+		{
+			"fieldname": "mobile_app_sort_order",
+			"label": "Mobile App Sort Order",
+			"fieldtype": "Int",
+			"insert_after": "mobile_app_sf_symbol",
+			"default": "0",
+		},
 	],
 	"Mode of Payment": [
 		{

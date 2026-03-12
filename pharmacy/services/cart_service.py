@@ -167,12 +167,12 @@ def _validate_cart_item(item_code: str) -> None:
 	item = frappe.db.get_value(
 		"Item",
 		item_code,
-		["name", "add_to_mobile_app", "disabled", "is_hidden_in_app"],
+		["name", "show_in_mobile_app", "disabled", "is_hidden_in_app"],
 		as_dict=True,
 	)
 	if not item:
 		raise_not_found(resource_name="Item", resource_id=item_code)
-	if not item.add_to_mobile_app or item.disabled or item.is_hidden_in_app:
+	if not item.show_in_mobile_app or item.disabled or item.is_hidden_in_app:
 		raise_invalid_input(
 			message=_("Item {0} is not available for the mobile cart.").format(item_code),
 			details={"item_code": item_code},
