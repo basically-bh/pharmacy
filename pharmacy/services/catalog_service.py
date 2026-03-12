@@ -15,6 +15,7 @@ from pharmacy.services.mobile_service import (
 PRODUCT_FIELDS = [
 	"name",
 	"item_name",
+	"item_group",
 	"image",
 	"description",
 	"stock_uom",
@@ -90,17 +91,22 @@ def list_product_data(
 	total_count = _get_product_count(filters=filters, or_filters=or_filters)
 	price_context = _get_price_context()
 	price_map = _get_price_map([row.name for row in products], price_context.price_list)
+	item_groups = _get_mobile_item_groups()
 
 	items = [
 		serialize_product_summary(row, price_context=price_context, price_map=price_map)
 		for row in products
 	]
-	return build_list_response(
+	response = build_list_response(
 		items=items,
 		page=page_number,
 		page_size=size,
 		total_count=total_count,
 	)
+	# Mobile app navigation now sources categories from Item Group metadata,
+	# while product_type remains in the payload for backward compatibility.
+	response["item_groups"] = item_groups
+	return response
 
 
 def get_product_data(product_id: str | None = None) -> dict:
@@ -146,6 +152,7 @@ def serialize_product_summary(
 	return {
 		"id": product.name,
 		"name": product.item_name or product.name,
+		"item_group": product.item_group or None,
 		"short_description": product.app_short_description or product.description or None,
 		"image_url": product.image or None,
 		"product_type": product.product_type or None,
@@ -229,6 +236,31 @@ def _get_price_map(item_codes: list[str], price_list: str | None) -> dict[str, f
 		filters={"item_code": ["in", item_codes], "price_list": price_list},
 	)
 	return {row.item_code: row for row in rows}
+
+
+def _get_mobile_item_groups() -> list[dict]:
+	rows = frappe.get_all(
+		"Item Group",
+		fields=[
+			"name",
+			"show_in_mobile_app",
+			"mobile_app_sf_symbol",
+			"mobile_app_sort_order",
+			"image",
+		],
+		filters={"show_in_mobile_app": 1},
+		order_by="mobile_app_sort_order asc, name asc",
+	)
+	return [
+		{
+			"name": row.name,
+			"show_in_mobile_app": cbool(row.show_in_mobile_app),
+			"mobile_app_sf_symbol": row.mobile_app_sf_symbol or None,
+			"mobile_app_sort_order": row.mobile_app_sort_order or 0,
+			"image": row.image or None,
+		}
+		for row in rows
+	]
 
 
 def _split_csv(value: str | None) -> list[str]:
