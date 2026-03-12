@@ -6,6 +6,7 @@ from frappe.utils import nowdate, nowtime
 
 from pharmacy.services.mobile_service import (
 	get_current_customer_profile,
+	get_request_value,
 	raise_invalid_input,
 	raise_not_found,
 )
@@ -33,6 +34,7 @@ def add_item_to_cart(item_code: str | None, qty: int | float | str | None) -> di
 	cart = get_active_cart_doc_for_profile(profile.name, allow_missing=True)
 	if not cart:
 		cart = _create_cart(profile.name)
+	before_cart_id = cart.name
 
 	item_code = _normalize_item_code(item_code)
 	qty_value = _parse_qty(qty, fieldname="qty")
@@ -52,12 +54,20 @@ def add_item_to_cart(item_code: str | None, qty: int | float | str | None) -> di
 		)
 
 	_save_cart(cart)
+	_log_cart_mutation(
+		"add_item_to_cart",
+		item_code=item_code,
+		qty=qty_value,
+		before_cart_id=before_cart_id,
+		after_cart=cart,
+	)
 	return {"cart": serialize_cart(cart)}
 
 
 def update_cart_item_qty(item_code: str | None, qty: int | float | str | None) -> dict:
 	profile = get_current_customer_profile(fields=["name"])
 	cart = get_active_cart_doc_for_profile(profile.name)
+	before_cart_id = cart.name
 	item_code = _normalize_item_code(item_code)
 	qty_value = _parse_qty(qty, fieldname="qty")
 
@@ -67,12 +77,20 @@ def update_cart_item_qty(item_code: str | None, qty: int | float | str | None) -
 
 	row.qty = qty_value
 	_save_cart(cart)
+	_log_cart_mutation(
+		"update_cart_item_qty",
+		item_code=item_code,
+		qty=qty_value,
+		before_cart_id=before_cart_id,
+		after_cart=cart,
+	)
 	return {"cart": serialize_cart(cart)}
 
 
 def remove_item_from_cart(item_code: str | None) -> dict:
 	profile = get_current_customer_profile(fields=["name"])
 	cart = get_active_cart_doc_for_profile(profile.name)
+	before_cart_id = cart.name
 	item_code = _normalize_item_code(item_code)
 
 	row = _get_cart_item(cart, item_code)
@@ -81,6 +99,13 @@ def remove_item_from_cart(item_code: str | None) -> dict:
 
 	cart.remove(row)
 	_save_cart(cart)
+	_log_cart_mutation(
+		"remove_item_from_cart",
+		item_code=item_code,
+		qty=None,
+		before_cart_id=before_cart_id,
+		after_cart=cart,
+	)
 	return {"cart": serialize_cart(cart)}
 
 
@@ -135,6 +160,7 @@ def _create_cart(customer_profile: str):
 def _save_cart(doc) -> None:
 	doc.order_status = "Draft"
 	doc.save(ignore_permissions=True)
+	frappe.db.commit()
 
 
 def _normalize_item_code(item_code: str | None) -> str:
@@ -184,3 +210,32 @@ def _get_cart_item(doc, item_code: str):
 		if row.item_code == item_code:
 			return row
 	return None
+
+
+def resolve_cart_item_code(item_code: str | None) -> str | None:
+	return item_code or get_request_value("item_code")
+
+
+def resolve_cart_qty(qty: int | float | str | None) -> int | float | str | bool | None:
+	return qty if qty is not None else get_request_value("qty")
+
+
+def _log_cart_mutation(
+	action: str,
+	*,
+	item_code: str | None,
+	qty,
+	before_cart_id: str | None,
+	after_cart,
+) -> None:
+	frappe.logger("pharmacy.mobile_api").warning(
+		"Cart mutation debug: %s",
+		{
+			"action": action,
+			"item_code": item_code,
+			"qty": qty,
+			"before_cart_id": before_cart_id,
+			"after_cart_id": after_cart.name if after_cart else None,
+			"line_item_count": len(after_cart.get("items") or []) if after_cart else 0,
+		},
+	)
