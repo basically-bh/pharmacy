@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2026-03-10 21:30:18.830847",
  "doctype": "DocType",
@@ -8,8 +7,8 @@
  "field_order": [
   "customer_section",
   "naming_series",
-  "customer_profile",
-  "customer_name",
+  "mobile_app_user",
+  "full_name",
   "contact_mobile",
   "customer",
   "delivery_address",
@@ -48,20 +47,12 @@
    "label": "Naming Series"
   },
   {
-   "fieldname": "customer_profile",
+   "fieldname": "mobile_app_user",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Customer Profile",
-   "options": "Customer Profile",
+   "label": "Mobile App User",
+   "options": "Mobile App User",
    "reqd": 1
-  },
-  {
-   "fetch_from": "customer_profile.customer_name",
-   "fieldname": "customer_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Customer Name",
-   "read_only": 1
   },
   {
    "fieldname": "customer",
@@ -70,6 +61,7 @@
    "options": "Customer"
   },
   {
+   "fetch_from": "mobile_app_user.default_address",
    "fieldname": "delivery_address",
    "fieldtype": "Link",
    "label": "Delivery Address",
@@ -190,6 +182,7 @@
    "label": "Time"
   },
   {
+   "fetch_from": "mobile_app_user.mobile_no",
    "fieldname": "contact_mobile",
    "fieldtype": "Data",
    "label": "Contact Mobile",
@@ -212,13 +205,21 @@
   {
    "fieldname": "column_break_cflf",
    "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "mobile_app_user.full_name",
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-12 12:12:45.799583",
+ "modified": "2026-03-13 15:13:58.660374",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "App Order",
@@ -242,7 +243,9 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
+ "search_fields": "mobile_app_user,full_name,contact_mobile",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "full_name"
 }

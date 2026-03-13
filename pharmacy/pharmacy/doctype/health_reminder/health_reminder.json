@@ -1,16 +1,15 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "autoname": "hash",
  "creation": "2026-03-09 00:26:35.682967",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "customer_section",
-  "customer_profile",
-  "customer",
+  "mobile_app_user",
+  "reminder_type",
   "column_break_customer",
   "status",
-  "reminder_type",
   "details_section",
   "title",
   "message",
@@ -31,17 +30,11 @@
    "label": "Customer"
   },
   {
-   "fieldname": "customer",
+   "fieldname": "mobile_app_user",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Customer",
-   "options": "Customer"
-  },
-  {
-   "fieldname": "customer_profile",
-   "fieldtype": "Link",
-   "label": "Customer Profile",
-   "options": "Customer Profile",
+   "label": "Mobile App User",
+   "options": "Mobile App User",
    "reqd": 1
   },
   {
@@ -133,10 +126,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-10 01:42:41.489359",
+ "modified": "2026-03-13 15:18:51.882439",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "Health Reminder",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -153,10 +147,10 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "customer,customer_profile,title,reference_prescription",
+ "search_fields": "mobile_app_user,title,reference_prescription",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title",
+ "title_field": "mobile_app_user",
  "track_changes": 1
 }

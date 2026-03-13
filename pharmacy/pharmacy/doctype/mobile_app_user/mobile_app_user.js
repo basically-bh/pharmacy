@@ -1,7 +1,7 @@
 // Copyright (c) 2026, Basically and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("Customer Profile", {
+// frappe.ui.form.on("Mobile App User", {
 // 	refresh(frm) {
 
 // 	},

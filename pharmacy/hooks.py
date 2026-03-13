@@ -13,3 +13,5 @@ required_apps = ["erpnext"]
 # reproducible across local, staging, and production environments.
 after_install = "pharmacy.setup.setup"
 after_migrate = "pharmacy.setup.setup"
+
+auth_hooks = ["pharmacy.auth_hooks.validate_mobile_bearer_auth"]
