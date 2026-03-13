@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-DETAILS_SECTION_DEPENDS_ON = "eval:doc.show_in_mobile_app==1 && ['Medicine', 'Supplement'].includes(doc.product_type)"
-MEDICINE_ONLY_DEPENDS_ON = "eval:doc.show_in_mobile_app==1 && doc.product_type=='Medicine'"
+SHOW_IN_APP_DEPENDS_ON = "eval:doc.show_in_mobile_app==1"
+DETAILS_SECTION_DEPENDS_ON = "eval:['Medicine', 'Supplement'].includes(doc.product_type)"
+MEDICINE_ONLY_DEPENDS_ON = "eval:doc.product_type=='Medicine'"
 
 
 def _section_break(fieldname: str, label: str | None = None, insert_after: str | None = None) -> dict:
@@ -36,7 +37,7 @@ def _app_item_field(
 		"label": label,
 		"fieldtype": fieldtype,
 		"insert_after": insert_after,
-		"depends_on": "eval:doc.show_in_mobile_app==1",
+		"depends_on": SHOW_IN_APP_DEPENDS_ON,
 	}
 	field.update(extra)
 	return field
@@ -77,20 +78,21 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"fieldtype": "Tab Break",
 			"insert_after": "default_item_manufacturer",
 		},
-		_section_break("mobile_app_classification_section", "Classification", "mobile_app_tab"),
+		_section_break("mobile_app_visibility_section", "Visibility", "mobile_app_tab"),
 		_app_item_field(
 			"show_in_mobile_app",
 			"Show in Mobile App",
 			"Check",
-			"mobile_app_classification_section",
+			"mobile_app_visibility_section",
 			default="0",
 			depends_on="",
 		),
+		_section_break("mobile_app_classification_section", "Classification", "show_in_mobile_app"),
 		_app_item_field(
 			"featured",
 			"Featured",
 			"Check",
-			"show_in_mobile_app",
+			"mobile_app_classification_section",
 			default="0",
 		),
 		_app_item_field(
@@ -144,11 +146,20 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 		_app_item_field("strength", "Strength", "Data", "active_ingredient", depends_on=DETAILS_SECTION_DEPENDS_ON),
 		_app_item_field("form", "Form", "Data", "strength", depends_on=DETAILS_SECTION_DEPENDS_ON),
 		_app_item_field("pack_size", "Pack Size", "Data", "form", depends_on=DETAILS_SECTION_DEPENDS_ON),
+		_app_item_field("manufacturer", "Manufacturer", "Data", "pack_size", depends_on=DETAILS_SECTION_DEPENDS_ON),
+		_app_item_field(
+			"country_of_origin",
+			"Country of Origin",
+			"Link",
+			"manufacturer",
+			options="Country",
+			depends_on=DETAILS_SECTION_DEPENDS_ON,
+		),
 		_app_item_field(
 			"refill_eligible",
 			"Refill Eligible",
 			"Check",
-			"pack_size",
+			"country_of_origin",
 			default="0",
 			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
@@ -168,7 +179,7 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
 		_app_item_field("max_patient_age", "Max Patient Age", "Int", "min_patient_age", depends_on=DETAILS_SECTION_DEPENDS_ON),
-		_section_break("mobile_app_section", "App Experience", "max_patient_age"),
+		_section_break("mobile_app_section", "App Experience", "product_type"),
 		_app_item_field(
 			"app_short_description",
 			"App Short Description",
