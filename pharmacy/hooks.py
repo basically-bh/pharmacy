@@ -14,6 +14,4 @@ required_apps = ["erpnext"]
 after_install = "pharmacy.setup.setup"
 after_migrate = "pharmacy.setup.setup"
 
-auth_hooks = [
-	"pharmacy.auth_hooks.validate_mobile_bearer_auth",
-]
+auth_hooks = ["pharmacy.auth_hooks.validate_mobile_bearer_auth"]

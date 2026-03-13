@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"pharmacy_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Pharmacy Operations</b></span>\",\"col\":12}},{\"id\":\"customer_profile_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Profile\",\"col\":4}},{\"id\":\"prescription_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Prescription\",\"col\":4}},{\"id\":\"health_reminder_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Health Reminder\",\"col\":4}},{\"id\":\"supporting_records_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Supporting Records</b></span>\",\"col\":12}},{\"id\":\"supporting_records_card\",\"type\":\"card\",\"data\":{\"card_name\":\"Supporting Records\",\"col\":4}}]",
+ "content": "[{\"id\":\"pharmacy_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Pharmacy Operations</b></span>\",\"col\":12}},{\"id\":\"prescription_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Prescription\",\"col\":4}},{\"id\":\"health_reminder_shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Health Reminder\",\"col\":4}},{\"id\":\"supporting_records_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Supporting Records</b></span>\",\"col\":12}},{\"id\":\"supporting_records_card\",\"type\":\"card\",\"data\":{\"card_name\":\"Supporting Records\",\"col\":4}}]",
  "creation": "2026-03-09 01:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -55,14 +55,6 @@
  "roles": [],
  "sequence_id": 18.0,
  "shortcuts": [
-  {
-   "color": "Green",
-   "doc_view": "List",
-   "label": "Customer Profile",
-   "link_to": "Customer Profile",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
   {
    "color": "Green",
    "doc_view": "List",

@@ -53,42 +53,68 @@ def execute_api(method, /, *args, **kwargs) -> dict:
 
 
 def require_authenticated_user() -> str:
-	from pharmacy.services.auth_service import get_authenticated_mobile_context
+	user = frappe.session.user
+	if not user or user == "Guest":
+		raise MobileApiError(
+			code="forbidden",
+			message=_("Authentication is required."),
+			http_status_code=403,
+		)
+	return user
 
-	context = get_authenticated_mobile_context(required=True)
-	return context.user
 
-
-def get_current_customer_profile(
+def get_current_mobile_app_user(
 	fields: list[str] | tuple[str, ...] | None = None,
 	*,
 	required: bool = True,
 ) -> frappe._dict | None:
-	field_list = list(fields or ["name", "user", "customer", "customer_name"])
-	if "name" not in field_list:
-		field_list.insert(0, "name")
-
+	require_authenticated_user()
 	from pharmacy.services.auth_service import get_authenticated_mobile_context
 
-	context = get_authenticated_mobile_context(required=required)
-	if not context:
-		return None
-
-	profile = None
-	if context.get("profile"):
-		profile_name = context.profile.name
-		profile = frappe.db.get_value("Customer Profile", profile_name, field_list, as_dict=True)
-	else:
-		profile = frappe.db.get_value("Customer Profile", {"user": context.user}, field_list, as_dict=True)
-	if not profile:
+	context = frappe._dict(get_authenticated_mobile_context())
+	app_user_name = context.get("mobile_app_user_id")
+	if not app_user_name:
 		if not required:
 			return None
 		raise_not_found(
-			resource_name="Customer Profile",
-			resource_id=context.user,
-			message=_("Customer Profile not found for the authenticated user."),
+			resource_name="Mobile App User",
+			message=_("Mobile App User not found for the authenticated session."),
 		)
-	return profile
+
+	field_list = list(fields or ["name", "customer", "full_name", "mobile_no", "default_address"])
+	if "name" not in field_list:
+		field_list.insert(0, "name")
+
+	app_user = frappe.db.get_value(
+		"Mobile App User",
+		app_user_name,
+		field_list,
+		as_dict=True,
+	)
+	if not app_user:
+		if not required:
+			return None
+		raise_not_found(
+			resource_name="Mobile App User",
+			resource_id=app_user_name,
+			message=_("Mobile App User not found for the authenticated session."),
+		)
+	return app_user
+
+
+def get_current_customer(*, required: bool = False) -> str | None:
+	require_authenticated_user()
+	from pharmacy.services.auth_service import get_authenticated_mobile_context
+
+	context = frappe._dict(get_authenticated_mobile_context())
+	customer_id = context.get("customer_id")
+	if customer_id or not required:
+		return customer_id
+
+	raise_not_found(
+		resource_name="Customer",
+		message=_("Customer not found for the authenticated mobile user."),
+	)
 
 
 def parse_pagination(page: int | str = 1, page_size: int | str = DEFAULT_PAGE_SIZE) -> tuple[int, int, int]:
@@ -269,20 +295,20 @@ def get_owned_resource_name(
 	*,
 	doctype: str,
 	resource_id: str,
-	profile_name: str,
-	profile_field: str = "customer_profile",
+	owner_name: str,
+	owner_field: str = "mobile_app_user",
 	resource_label: str | None = None,
 ) -> str:
 	resource = frappe.db.get_value(
 		doctype,
 		resource_id,
-		["name", profile_field],
+		["name", owner_field],
 		as_dict=True,
 	)
 	label = resource_label or doctype
 	if not resource:
 		raise_not_found(resource_name=label, resource_id=resource_id)
-	if resource.get(profile_field) != profile_name:
+	if resource.get(owner_field) != owner_name:
 		raise_forbidden(
 			message=_("You do not have access to this {0}.").format(label.lower()),
 			details={"resource": label, "resource_id": resource_id},

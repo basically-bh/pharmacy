@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import add_to_date, get_datetime, now_datetime
 
+from pharmacy.pharmacy.doctype.mobile_otp_request.mobile_otp_request import get_stored_otp_hash
 from pharmacy.services.mobile_app_user_service import (
 	ensure_mobile_app_user_is_active,
 	get_mobile_app_user_by_mobile,
@@ -26,43 +27,27 @@ from pharmacy.utils.mobile_auth import (
 
 OTP_EXPIRY_MINUTES = 10
 OTP_MAX_ATTEMPTS = 5
-OTP_SEND_WINDOW_MINUTES = 15
+OTP_SEND_WINDOW_MINUTES = 10
 OTP_MAX_SENDS_PER_WINDOW = 3
 ACCESS_TOKEN_EXPIRY_DAYS = 30
+ACCESS_TOKEN_GENERATION_ATTEMPTS = 5
 AUTH_CONTEXT_KEY = "pharmacy_mobile_auth_context"
 
 
-def send_otp(mobile_no: str | None = None) -> dict:
+def send_otp(mobile_no: str | None) -> dict:
 	normalized_mobile_no = normalize_mobile_no(mobile_no)
 	if not normalized_mobile_no:
-		_raise_invalid_input(
-			message=_("A valid mobile_no is required."),
-			details={"field": "mobile_no"},
-		)
+		_raise_invalid_input(_("A valid mobile_no is required."), {"field": "mobile_no"})
 
 	_enforce_send_rate_limit(normalized_mobile_no)
 	app_user = get_or_create_mobile_app_user(normalized_mobile_no)
 	ensure_mobile_app_user_is_active(app_user)
 	_expire_pending_otp_requests(normalized_mobile_no)
+
 	otp_code = generate_numeric_otp()
 	otp_request = _create_otp_request(app_user, otp_code)
-	delivery_channel = _deliver_otp(app_user.mobile_no, otp_code)
-	if delivery_channel:
-		frappe.db.set_value(
-			"Mobile OTP Request",
-			otp_request.name,
-			"delivery_channel",
-			delivery_channel,
-			update_modified=False,
-		)
-
-	frappe.db.set_value(
-		"Mobile App User",
-		app_user.name,
-		"otp_verification_status",
-		"Pending",
-		update_modified=False,
-	)
+	frappe.db.set_value("Mobile App User", app_user.name, "otp_verification_status", "Pending", update_modified=False)
+	_deliver_otp(normalized_mobile_no, otp_code)
 
 	response = {
 		"success": True,
@@ -75,7 +60,7 @@ def send_otp(mobile_no: str | None = None) -> dict:
 	return response
 
 
-def verify_otp(mobile_no: str | None = None, otp: str | None = None) -> dict:
+def verify_otp(mobile_no: str | None, otp: str | None) -> dict:
 	app_user, _ = _verify_otp_request(mobile_no=mobile_no, otp=otp)
 	return {
 		"success": True,
@@ -85,8 +70,8 @@ def verify_otp(mobile_no: str | None = None, otp: str | None = None) -> dict:
 
 
 def login_with_otp(
-	mobile_no: str | None = None,
-	otp: str | None = None,
+	mobile_no: str | None,
+	otp: str | None,
 	device_name: str | None = None,
 	platform: str | None = None,
 	app_version: str | None = None,
@@ -103,9 +88,14 @@ def login_with_otp(
 		device_name=device_name,
 		platform=platform,
 		app_version=app_version,
-		update_last_login=False,
+		update_last_login=True,
 	)
-	context = _build_token_context(token_doc, token_value=token_value, update_last_used=False, touch_activity=False)
+	context = _build_token_context(
+		token_doc,
+		token_value=token_value,
+		update_last_used=False,
+		touch_activity=False,
+	)
 	return {
 		"access_token": token_value,
 		"token_type": "Bearer",
@@ -118,12 +108,7 @@ def login_with_otp(
 def get_current_mobile_session() -> dict:
 	context = get_authenticated_mobile_context(required=False)
 	if not context:
-		return {
-			"authenticated": False,
-			"guest": True,
-			"user": None,
-		}
-
+		return {"authenticated": False, "guest": True, "user": None}
 	return {
 		"authenticated": True,
 		"guest": False,
@@ -136,19 +121,11 @@ def get_current_mobile_session() -> dict:
 def logout_mobile_session() -> dict:
 	context = get_authenticated_mobile_context(required=False)
 	if not context:
-		return {
-			"success": True,
-			"logged_out": False,
-		}
-
+		return {"success": True, "logged_out": False}
 	if context.auth_type == "bearer" and context.get("token_name"):
 		_revoke_access_token(context.token_name, reason="Logged out from mobile app")
 	setattr(frappe.local, AUTH_CONTEXT_KEY, False)
-
-	return {
-		"success": True,
-		"logged_out": True,
-	}
+	return {"success": True, "logged_out": True}
 
 
 def get_authenticated_mobile_context(*, required: bool = True):
@@ -207,62 +184,31 @@ def authenticate_access_token(access_token: str, *, required: bool = True):
 			)
 		return None
 
-	context = _build_token_context(token_doc, token_value=access_token, update_last_used=True, touch_activity=True)
+	context = _build_token_context(
+		token_doc,
+		token_value=access_token,
+		update_last_used=True,
+		touch_activity=True,
+	)
 	setattr(frappe.local, AUTH_CONTEXT_KEY, context)
 	return context
 
 
 def get_current_mobile_app_user_for_name(name: str):
-	app_user = frappe.db.get_value(
-		"Mobile App User",
-		name,
-		[
-			"name",
-			"full_name",
-			"first_name",
-			"last_name",
-			"country_code",
-			"mobile_no",
-			"customer",
-			"account_status",
-			"otp_verification_status",
-			"national_id",
-			"date_of_birth",
-			"gender",
-			"default_address",
-			"default_payment_method",
-			"language",
-			"allow_push_notifications",
-			"is_mobile_no_verified",
-			"customer_created_on_checkout",
-			"otp_verified_at",
-			"last_login",
-			"last_active_at",
-			"last_device_name",
-			"last_device_platform",
-			"app_version",
-		],
-		as_dict=True,
-	)
+	app_user = frappe.db.get_value("Mobile App User", name, "*", as_dict=True)
 	if not app_user:
 		raise_not_found_mobile_user(name)
-	return app_user
+	return frappe._dict(app_user)
 
 
-def _verify_otp_request(mobile_no: str | None = None, otp: str | None = None):
+def _verify_otp_request(*, mobile_no: str | None, otp: str | None):
 	normalized_mobile_no = normalize_mobile_no(mobile_no)
 	if not normalized_mobile_no:
-		_raise_invalid_input(
-			message=_("A valid mobile_no is required."),
-			details={"field": "mobile_no"},
-		)
+		_raise_invalid_input(_("A valid mobile_no is required."), {"field": "mobile_no"})
 
 	otp_code = (otp or "").strip()
 	if len(otp_code) != OTP_LENGTH or not otp_code.isdigit():
-		_raise_invalid_input(
-			message=_("A valid OTP is required."),
-			details={"field": "otp"},
-		)
+		_raise_invalid_input(_("A valid OTP is required."), {"field": "otp"})
 
 	otp_request = _get_latest_pending_otp_request(normalized_mobile_no)
 	if not otp_request:
@@ -289,7 +235,8 @@ def _verify_otp_request(mobile_no: str | None = None, otp: str | None = None):
 			http_status_code=429,
 		)
 
-	if not hmac.compare_digest(hash_secret(otp_code), otp_request.otp_hash):
+	stored_otp_hash = get_stored_otp_hash(otp_request.name)
+	if not stored_otp_hash or not hmac.compare_digest(hash_secret(otp_code), stored_otp_hash):
 		attempt_count = (otp_request.attempt_count or 0) + 1
 		values = {"attempt_count": attempt_count}
 		if attempt_count >= (otp_request.max_attempts or OTP_MAX_ATTEMPTS):
@@ -388,54 +335,58 @@ def _create_otp_request(app_user, otp_code: str):
 	return doc
 
 
-def _deliver_otp(mobile_no: str, otp_code: str) -> str | None:
+def _deliver_otp(mobile_no: str, otp_code: str) -> None:
 	message = _("Your Basically verification code is {0}. It expires in {1} minutes.").format(
 		otp_code, OTP_EXPIRY_MINUTES
 	)
-	for hook_path in frappe.get_hooks("mobile_otp_delivery") or []:
+	for hook_path in frappe.get_hooks("mobile_otp_delivery"):
 		dispatcher = frappe.get_attr(hook_path)
 		dispatcher(mobile_no=mobile_no, message=message, otp_code=otp_code)
-		return hook_path
+		return
 
 	try:
 		from frappe.core.doctype.sms_settings.sms_settings import send_sms
-	except ImportError:
+	except (ImportError, TypeError):
 		send_sms = None
 
-	if send_sms:
+	if callable(send_sms):
 		try:
 			send_sms(receiver_list=[mobile_no], msg=message)
-		except TypeError:
-			send_sms([mobile_no], message)
+			return
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), "Pharmacy Mobile OTP Delivery Error")
 			raise MobileApiError(
 				code="otp_delivery_failed",
 				message=_("Failed to deliver OTP."),
-				http_status_code=503,
+				http_status_code=500,
 			)
-		return "frappe_sms"
 
 	if _is_debug_auth_enabled():
 		frappe.logger("pharmacy.mobile_auth").info("OTP for %s: %s", mobile_no, otp_code)
-		return "debug_log"
+		return
 
 	raise MobileApiError(
 		code="otp_delivery_unavailable",
 		message=_("OTP delivery is not configured."),
-		http_status_code=503,
+		http_status_code=500,
 	)
 
 
 def _get_latest_pending_otp_request(mobile_no: str):
 	otp_requests = frappe.get_all(
 		"Mobile OTP Request",
-		fields=["name", "otp_hash", "attempt_count", "max_attempts", "expires_at"],
 		filters={"mobile_no": mobile_no, "status": "Pending"},
-		order_by="creation desc",
-		limit_page_length=1,
+		fields=["name", "mobile_no", "mobile_app_user", "status", "attempt_count", "max_attempts", "expires_at", "sent_on"],
+		order_by="sent_on desc, creation desc",
+		limit_page_length=5,
 	)
-	return otp_requests[0] if otp_requests else None
+	now = now_datetime()
+	for otp_request in otp_requests:
+		if otp_request.expires_at and get_datetime(otp_request.expires_at) <= now:
+			_mark_otp_request_status(otp_request.name, "Expired")
+			continue
+		return otp_request
+	return None
 
 
 def _expire_pending_otp_requests(mobile_no: str) -> None:
@@ -456,34 +407,48 @@ def _lock_otp_request(name: str) -> None:
 	frappe.db.set_value(
 		"Mobile OTP Request",
 		name,
-		{
-			"status": "Locked",
-			"locked_on": now_datetime(),
-		},
+		{"status": "Locked", "locked_on": now_datetime()},
 		update_modified=False,
 	)
 
 
-def _issue_access_token(app_user, *, device_name: str | None, platform: str | None, app_version: str | None):
-	token_value = generate_access_token()
+def _issue_access_token(
+	app_user,
+	*,
+	device_name: str | None = None,
+	platform: str | None = None,
+	app_version: str | None = None,
+):
 	now = now_datetime()
-	doc = frappe.get_doc(
-		{
-			"doctype": "Mobile Access Token",
-			"mobile_app_user": app_user.name,
-			"status": "Active",
-			"token_prefix": token_value[:8],
-			"token_hash": hash_secret(token_value),
-			"issued_on": now,
-			"expires_at": add_to_date(now, days=ACCESS_TOKEN_EXPIRY_DAYS, as_datetime=True),
-			"platform": (platform or "").strip() or None,
-			"device_name": (device_name or "").strip() or None,
-			"app_version": (app_version or "").strip() or None,
-			"last_ip": _get_request_ip(),
-		}
+	for _ in range(ACCESS_TOKEN_GENERATION_ATTEMPTS):
+		token_value = generate_access_token()
+		token_hash = hash_secret(token_value)
+		if frappe.db.exists("Mobile Access Token", {"token_hash": token_hash}):
+			continue
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "Mobile Access Token",
+				"mobile_app_user": app_user.name,
+				"status": "Active",
+				"token_prefix": token_value[:8],
+				"token_hash": token_hash,
+				"issued_on": now,
+				"expires_at": add_to_date(now, days=ACCESS_TOKEN_EXPIRY_DAYS, as_datetime=True),
+				"platform": (platform or "").strip() or None,
+				"device_name": (device_name or "").strip() or None,
+				"app_version": (app_version or "").strip() or None,
+				"last_ip": _get_request_ip(),
+			}
+		)
+		doc.insert(ignore_permissions=True)
+		return token_value, doc
+
+	raise MobileApiError(
+		code="token_generation_failed",
+		message=_("Failed to create an access token. Please try again."),
+		http_status_code=500,
 	)
-	doc.insert(ignore_permissions=True)
-	return token_value, doc
 
 
 def _revoke_access_token(token_name: str, *, reason: str) -> None:
@@ -503,10 +468,7 @@ def _enforce_send_rate_limit(mobile_no: str) -> None:
 	window_start = add_to_date(now_datetime(), minutes=-OTP_SEND_WINDOW_MINUTES, as_datetime=True)
 	send_count = frappe.db.count(
 		"Mobile OTP Request",
-		filters={
-			"mobile_no": mobile_no,
-			"sent_on": (">=", window_start),
-		},
+		filters={"mobile_no": mobile_no, "sent_on": (">=", window_start)},
 	)
 	if send_count >= OTP_MAX_SENDS_PER_WINDOW:
 		raise MobileApiError(
@@ -520,15 +482,12 @@ def _extract_bearer_token() -> str | None:
 	header_value = _get_request_header("Authorization")
 	if not header_value:
 		return None
-
 	try:
 		auth_type, token = header_value.split(" ", 1)
 	except ValueError:
 		return None
-
 	if auth_type.lower() != "bearer":
 		return None
-
 	return token.strip() or None
 
 
@@ -573,7 +532,7 @@ def _raise_authentication_required() -> None:
 	)
 
 
-def _raise_invalid_input(*, message: str, details: dict | None = None) -> None:
+def _raise_invalid_input(message: str, details: dict | None = None) -> None:
 	raise MobileApiError(
 		code="invalid_input",
 		message=message,

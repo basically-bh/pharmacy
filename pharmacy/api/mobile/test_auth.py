@@ -17,7 +17,6 @@ from pharmacy.services.auth_service import (
 	verify_otp,
 )
 from pharmacy.services.mobile_app_user_service import (
-	DEFAULT_NAMING_SERIES,
 	create_mobile_app_user_address_data,
 	get_mobile_app_user_profile_data,
 )
@@ -145,7 +144,6 @@ class IntegrationTestMobileAuth(IntegrationTestCase):
 		return frappe.get_doc(
 			{
 				"doctype": "Mobile App User",
-				"naming_series": DEFAULT_NAMING_SERIES,
 				"first_name": first_name,
 				"last_name": last_name,
 				"mobile_no": self._new_mobile_no(),

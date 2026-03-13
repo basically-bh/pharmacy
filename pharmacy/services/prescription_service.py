@@ -5,7 +5,7 @@ from frappe import _
 
 from pharmacy.services.mobile_service import (
 	build_list_response,
-	get_current_customer_profile,
+	get_current_mobile_app_user,
 	get_owned_resource_name,
 	get_request_value,
 	parse_pagination,
@@ -15,7 +15,7 @@ from pharmacy.services.mobile_service import (
 PRESCRIPTION_LIST_FIELDS = [
 	"name",
 	"customer",
-	"customer_profile",
+	"mobile_app_user",
 	"customer_name",
 	"prescription_status",
 	"uploaded_on",
@@ -42,9 +42,9 @@ def list_prescription_data(
 	page_size: int | str = 20,
 	status: str | None = None,
 ) -> dict:
-	profile = get_current_customer_profile(fields=["name"])
+	app_user = get_current_mobile_app_user(fields=["name"])
 	page_number, size, offset = parse_pagination(page, page_size)
-	filters = {"customer_profile": profile.name}
+	filters = {"mobile_app_user": app_user.name}
 	if status:
 		if status not in VALID_PRESCRIPTION_STATUSES:
 			raise_invalid_input(
@@ -73,7 +73,7 @@ def list_prescription_data(
 
 
 def get_prescription_data(prescription_id: str | None = None) -> dict:
-	profile = get_current_customer_profile(fields=["name"])
+	app_user = get_current_mobile_app_user(fields=["name"])
 	name = (prescription_id or get_request_value("prescription_id", aliases=("id",)) or "").strip()
 	if not name:
 		raise_invalid_input(
@@ -84,7 +84,7 @@ def get_prescription_data(prescription_id: str | None = None) -> dict:
 	prescription_name = get_owned_resource_name(
 		doctype="Prescription",
 		resource_id=name,
-		profile_name=profile.name,
+		owner_name=app_user.name,
 		resource_label="Prescription",
 	)
 
@@ -108,7 +108,7 @@ def serialize_prescription_detail(doc) -> dict:
 	return {
 		"id": doc.name,
 		"customer_id": doc.customer or None,
-		"customer_profile_id": doc.customer_profile or None,
+		"mobile_app_user_id": doc.mobile_app_user or None,
 		"status": doc.prescription_status or None,
 		"uploaded_on": doc.uploaded_on,
 		"uploaded_by": doc.uploaded_by or None,

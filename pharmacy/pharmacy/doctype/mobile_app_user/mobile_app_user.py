@@ -23,14 +23,18 @@ class MobileAppUser(Document):
 		self._render_default_address_html()
 
 	def _set_defaults(self) -> None:
-		self.account_status = self.account_status or "Active"
-		self.otp_verification_status = self.otp_verification_status or "Not Verified"
-		self.country_code = self.country_code or "+973"
-		self.language = self.language or "English"
+		if not self.account_status:
+			self.account_status = "Active"
+		if not self.otp_verification_status:
+			self.otp_verification_status = "Not Verified"
+		if not self.country_code:
+			self.country_code = "+973"
+		if not self.language:
+			self.language = "English"
 
 	def _set_full_name(self) -> None:
 		parts = [part.strip() for part in [self.first_name, self.last_name] if part and part.strip()]
-		self.full_name = " ".join(parts)
+		self.full_name = " ".join(parts) if parts else None
 
 	def _normalize_mobile_no(self) -> None:
 		normalized_mobile_no = normalize_mobile_no(self.mobile_no)
@@ -41,10 +45,7 @@ class MobileAppUser(Document):
 	def _ensure_unique_mobile_no(self) -> None:
 		existing_name = frappe.db.get_value(
 			"Mobile App User",
-			{
-				"mobile_no": self.mobile_no,
-				"name": ["!=", self.name or ""],
-			},
+			{"mobile_no": self.mobile_no, "name": ["!=", self.name or ""]},
 			"name",
 		)
 		if existing_name:
@@ -57,25 +58,21 @@ class MobileAppUser(Document):
 
 	def _reset_verification_state_if_mobile_changed(self) -> None:
 		previous_doc = self.get_doc_before_save()
-		if previous_doc and previous_doc.mobile_no == self.mobile_no:
+		if not previous_doc or previous_doc.mobile_no == self.mobile_no:
 			return
-
-		self.otp_verification_status = "Not Verified"
 		self.is_mobile_no_verified = 0
+		self.otp_verification_status = "Not Verified"
 		self.otp_verified_at = None
 
 	def _render_default_address_html(self) -> None:
 		self.address_html = render_mobile_app_user_address_html(self.default_address)
 
 
-def render_mobile_app_user_address_html(address_name: str | None) -> str:
-	if not address_name:
-		return ""
-
-	if not frappe.db.exists("Address", address_name):
-		return ""
+def render_mobile_app_user_address_html(address_name: str | None) -> str | None:
+	if not address_name or not frappe.db.exists("Address", address_name):
+		return None
 
 	from frappe.contacts.doctype.address.address import get_address_display
 
 	address_doc = frappe.get_cached_doc("Address", address_name)
-	return get_address_display(address_doc.as_dict()) or ""
+	return get_address_display(address_doc.as_dict())

@@ -1,4 +1,0 @@
-[pre_model_sync]
-
-[post_model_sync]
-pharmacy.patches.v0_4.backfill_customer_profile_mobile_no

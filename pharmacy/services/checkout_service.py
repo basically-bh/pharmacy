@@ -4,9 +4,9 @@ import frappe
 from frappe import _
 from frappe.utils import nowdate
 
-from pharmacy.services.cart_service import get_active_cart_doc_for_profile
+from pharmacy.services.cart_service import get_active_cart_doc_for_mobile_app_user
 from pharmacy.services.mobile_service import (
-	get_current_customer_profile,
+	get_current_mobile_app_user,
 	raise_invalid_input,
 	raise_not_found,
 )
@@ -16,12 +16,12 @@ SALES_ORDER_NAMING_SERIES = "SAL-ORD-.YYYY.-"
 
 
 def checkout_cart() -> dict:
-	profile = _get_checkout_profile()
-	cart = get_active_cart_doc_for_profile(profile.name)
+	app_user = _get_checkout_mobile_app_user()
+	cart = get_active_cart_doc_for_mobile_app_user(app_user.name)
 
 	_validate_cart_for_checkout(cart)
-	customer_id = _ensure_customer_for_profile(profile)
-	default_address_id = _ensure_default_address_link(profile, customer_id)
+	customer_id = _ensure_customer_for_mobile_app_user(app_user)
+	default_address_id = _ensure_default_address_link(app_user, customer_id)
 	cart.reload()
 	sales_order = _create_sales_order_from_cart(
 		cart,
@@ -53,7 +53,7 @@ def prepare_app_order_for_submission(app_order) -> None:
 	"""Create the ERP commercial documents required by a submitted App Order.
 
 	App Order is the orchestration document. On first submit we lazily create:
-	- Customer, if the linked Customer Profile does not have one yet
+	- Customer, if the linked Mobile App User does not have one yet
 	- Customer/address linkage, using the order's chosen delivery address
 	- Sales Order, linked back to the App Order
 	"""
@@ -64,18 +64,18 @@ def prepare_app_order_for_submission(app_order) -> None:
 			app_order.order_status = "Pending Review"
 		return
 
-	profile = frappe.db.get_value(
-		"Customer Profile",
-		app_order.customer_profile,
-		["name", "user", "customer", "customer_name", "default_address"],
+	app_user = frappe.db.get_value(
+		"Mobile App User",
+		app_order.mobile_app_user,
+		["name", "customer", "full_name", "mobile_no", "default_address"],
 		as_dict=True,
 	)
-	if not profile:
-		raise_not_found(resource_name="Customer Profile", resource_id=app_order.customer_profile)
+	if not app_user:
+		raise_not_found(resource_name="Mobile App User", resource_id=app_order.mobile_app_user)
 
-	customer_id = _ensure_customer_for_profile(profile)
+	customer_id = _ensure_customer_for_mobile_app_user(app_user)
 	address_id = _ensure_default_address_link(
-		profile,
+		app_user,
 		customer_id,
 		preferred_address_id=app_order.delivery_address,
 	)
@@ -96,17 +96,17 @@ def prepare_app_order_for_submission(app_order) -> None:
 	app_order.order_status = "Pending Review"
 
 
-def _get_checkout_profile() -> frappe._dict:
-	profile = get_current_customer_profile(
-		fields=["name", "user", "customer", "customer_name", "default_address"],
+def _get_checkout_mobile_app_user() -> frappe._dict:
+	app_user = get_current_mobile_app_user(
+		fields=["name", "customer", "full_name", "mobile_no", "default_address"],
 		required=False,
 	)
-	if not profile:
+	if not app_user:
 		raise_not_found(
-			resource_name="Customer Profile",
-			message=_("Customer Profile not found for the authenticated user."),
+			resource_name="Mobile App User",
+			message=_("Mobile App User not found for the authenticated session."),
 		)
-	return profile
+	return app_user
 
 
 def _validate_cart_for_checkout(cart) -> None:
@@ -135,43 +135,38 @@ def _validate_cart_for_checkout(cart) -> None:
 			)
 
 
-def _ensure_customer_for_profile(profile: frappe._dict) -> str:
-	if profile.customer:
-		return profile.customer
-
-	user = (
-		frappe.db.get_value(
-			"User",
-			profile.user,
-			["full_name", "email"],
-			as_dict=True,
-		)
-		if profile.user
-		else None
-	)
-	if not user:
-		raise_not_found(resource_name="User", resource_id=profile.user)
+def _ensure_customer_for_mobile_app_user(app_user: frappe._dict) -> str:
+	if app_user.customer:
+		return app_user.customer
 
 	customer = frappe.new_doc("Customer")
-	customer.customer_name = profile.customer_name or user.full_name or profile.user
+	customer.customer_name = app_user.full_name or app_user.mobile_no or app_user.name
 	customer.customer_type = "Individual"
 	customer.customer_group = _get_default_customer_group()
 	customer.territory = _get_default_territory()
 	customer.flags.ignore_permissions = True
 	customer.insert(ignore_permissions=True)
 
-	frappe.db.set_value("Customer Profile", profile.name, "customer", customer.name, update_modified=False)
+	frappe.db.set_value("Mobile App User", app_user.name, "customer", customer.name, update_modified=False)
+	if frappe.db.has_column("Mobile App User", "customer_created_on_checkout"):
+		frappe.db.set_value(
+			"Mobile App User",
+			app_user.name,
+			"customer_created_on_checkout",
+			1,
+			update_modified=False,
+		)
 	frappe.db.commit()
 	return customer.name
 
 
 def _ensure_default_address_link(
-	profile: frappe._dict,
+	app_user: frappe._dict,
 	customer_id: str,
 	*,
 	preferred_address_id: str | None = None,
 ) -> str | None:
-	address_id = preferred_address_id or profile.default_address or None
+	address_id = preferred_address_id or app_user.default_address or None
 	if not address_id:
 		return None
 
@@ -195,9 +190,9 @@ def _ensure_default_address_link(
 		address.flags.ignore_permissions = True
 		address.save(ignore_permissions=True)
 
-	if not profile.default_address:
-		frappe.db.set_value("Customer Profile", profile.name, "default_address", address_id, update_modified=False)
-		profile.default_address = address_id
+	if not app_user.default_address:
+		frappe.db.set_value("Mobile App User", app_user.name, "default_address", address_id, update_modified=False)
+		app_user.default_address = address_id
 
 	return address_id
 
@@ -224,7 +219,6 @@ def _create_sales_order_from_cart(
 	sales_order.selling_price_list = cart.price_list
 	sales_order.price_list_currency = cart.currency
 	sales_order.plc_conversion_rate = 1.0
-	sales_order.customer_profile = cart.customer_profile
 	sales_order.prescription = cart.prescription
 
 	for row in cart.get("items") or []:

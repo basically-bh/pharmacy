@@ -4,7 +4,7 @@ import frappe
 from frappe import _
 
 from pharmacy.pharmacy.doctype.mobile_app_user.mobile_app_user import render_mobile_app_user_address_html
-from pharmacy.services.mobile_service import cbool, raise_forbidden, raise_invalid_input, raise_not_found
+from pharmacy.services.mobile_service import cbool, get_request_value, raise_forbidden, raise_invalid_input, raise_not_found
 from pharmacy.utils.mobile_auth import normalize_mobile_no
 
 DEFAULT_COUNTRY_CODE = "+973"
@@ -19,6 +19,7 @@ APP_USER_CONTEXT_FIELDS = [
 	"customer",
 	"account_status",
 	"otp_verification_status",
+	"is_mobile_no_verified",
 	"national_id",
 	"date_of_birth",
 	"gender",
@@ -26,14 +27,13 @@ APP_USER_CONTEXT_FIELDS = [
 	"default_payment_method",
 	"language",
 	"allow_push_notifications",
-	"is_mobile_no_verified",
-	"customer_created_on_checkout",
 	"otp_verified_at",
 	"last_login",
 	"last_active_at",
 	"last_device_name",
 	"last_device_platform",
 	"app_version",
+	"customer_created_on_checkout",
 ]
 
 
@@ -63,7 +63,7 @@ def get_current_mobile_app_user(
 	return app_user
 
 
-def get_mobile_app_user_by_mobile(mobile_no: str | None, *, required: bool = True):
+def get_mobile_app_user_by_mobile(mobile_no: str | None, *, required: bool = True) -> frappe._dict | None:
 	normalized_mobile_no = normalize_mobile_no(mobile_no)
 	if not normalized_mobile_no:
 		if required:
@@ -83,11 +83,10 @@ def get_mobile_app_user_by_mobile(mobile_no: str | None, *, required: bool = Tru
 		if required:
 			raise_not_found(resource_name="Mobile App User", resource_id=normalized_mobile_no)
 		return None
-
 	return app_user
 
 
-def get_or_create_mobile_app_user(mobile_no: str | None):
+def get_or_create_mobile_app_user(mobile_no: str | None) -> frappe._dict:
 	normalized_mobile_no = normalize_mobile_no(mobile_no)
 	if not normalized_mobile_no:
 		raise_invalid_input(
@@ -115,24 +114,13 @@ def get_or_create_mobile_app_user(mobile_no: str | None):
 
 
 def _get_request_mobile_app_user_name() -> str | None:
-	for user in (
-		getattr(getattr(frappe.local, "session", None), "user", None),
-		getattr(getattr(frappe.local, "login_manager", None), "user", None),
-		getattr(getattr(frappe, "session", None), "user", None),
-	):
-		if not user or user == "Guest":
-			continue
-		if frappe.db.exists("Mobile App User", user):
-			return user
-	return None
+	return get_request_value("mobile_app_user", aliases=("mobile_app_user_id", "user_id", "id"))
 
 
-def ensure_mobile_app_user_is_active(app_user) -> None:
-	if (app_user.account_status or "") == "Blocked":
-		raise_forbidden(
-			message=_("This account is blocked."),
-			details={"mobile_app_user": app_user.name},
-		)
+def ensure_mobile_app_user_is_active(app_user: frappe._dict | object) -> None:
+	status = getattr(app_user, "account_status", None) or (app_user.get("account_status") if isinstance(app_user, dict) else None)
+	if status == "Blocked":
+		raise_forbidden(message=_("This account is blocked."))
 
 
 def touch_mobile_app_user_activity(
@@ -141,12 +129,11 @@ def touch_mobile_app_user_activity(
 	device_name: str | None = None,
 	platform: str | None = None,
 	app_version: str | None = None,
-	update_last_login: bool = False,
+	update_last_login: bool = True,
 ) -> None:
-	now = frappe.utils.now_datetime()
-	values = {"last_active_at": now}
+	values = {"last_active_at": frappe.utils.now_datetime()}
 	if update_last_login:
-		values["last_login"] = now
+		values["last_login"] = values["last_active_at"]
 	if device_name is not None:
 		values["last_device_name"] = device_name.strip() or None
 	if platform is not None:
@@ -157,25 +144,23 @@ def touch_mobile_app_user_activity(
 
 
 def update_mobile_app_user_verification(app_user_name: str) -> None:
-	now = frappe.utils.now_datetime()
 	frappe.db.set_value(
 		"Mobile App User",
 		app_user_name,
 		{
 			"otp_verification_status": "Verified",
 			"is_mobile_no_verified": 1,
-			"otp_verified_at": now,
-			"last_login": now,
-			"last_active_at": now,
+			"otp_verified_at": frappe.utils.now_datetime(),
 		},
 		update_modified=False,
 	)
 
 
-def serialize_mobile_app_user_profile(app_user) -> dict:
+def serialize_mobile_app_user_profile(app_user: frappe._dict) -> dict:
 	address = _get_address_data(app_user.default_address)
 	default_payment_method = _get_mode_of_payment(app_user.default_payment_method)
 	address_html = render_mobile_app_user_address_html(app_user.default_address)
+
 	return {
 		"id": app_user.name,
 		"full_name": app_user.full_name or None,
@@ -220,9 +205,9 @@ def get_mobile_app_user_profile_data() -> dict:
 	return {"mobile_app_user": serialize_mobile_app_user_profile(frappe._dict(app_user.as_dict()))}
 
 
-def update_mobile_app_user_profile_data(**payload) -> dict:
+def update_mobile_app_user_profile_data(payload: dict | None = None, **kwargs) -> dict:
+	payload = {**(payload or {}), **kwargs}
 	app_user = frappe.get_doc("Mobile App User", get_current_mobile_app_user(fields=["name"]).name)
-
 	updatable_fields = (
 		"first_name",
 		"last_name",
@@ -235,6 +220,7 @@ def update_mobile_app_user_profile_data(**payload) -> dict:
 		"allow_push_notifications",
 		"default_payment_method",
 	)
+
 	for fieldname in updatable_fields:
 		if fieldname not in payload or payload[fieldname] is None:
 			continue
@@ -255,13 +241,15 @@ def update_mobile_app_user_profile_data(**payload) -> dict:
 
 def get_mobile_app_user_addresses_data() -> dict:
 	app_user = get_current_mobile_app_user(fields=["name", "default_address"])
-	addresses = [_serialize_address(address_name, default_address=app_user.default_address) for address_name in _get_address_names_for_user(app_user.name)]
+	addresses = [
+		_serialize_address(address_name, default_address=app_user.default_address)
+		for address_name in _get_address_names_for_user(app_user.name)
+	]
 	touch_mobile_app_user_activity(app_user.name)
 	return {"addresses": addresses}
 
 
 def create_mobile_app_user_address_data(
-	*,
 	address_title: str | None = None,
 	address_type: str | None = None,
 	address_line1: str | None = None,
@@ -275,12 +263,14 @@ def create_mobile_app_user_address_data(
 	is_default: int | str | bool | None = None,
 ) -> dict:
 	app_user = get_current_mobile_app_user(fields=["name", "full_name", "mobile_no", "customer", "default_address"])
-	if not address_line1 or not str(address_line1).strip():
-		raise_invalid_input(message=_("address_line1 is required."), details={"field": "address_line1"})
-	if not city or not str(city).strip():
-		raise_invalid_input(message=_("city is required."), details={"field": "city"})
-	if not country or not str(country).strip():
-		raise_invalid_input(message=_("country is required."), details={"field": "country"})
+
+	for fieldname, value, message in (
+		("address_line1", address_line1, _("address_line1 is required.")),
+		("city", city, _("city is required.")),
+		("country", country, _("country is required.")),
+	):
+		if not value or not str(value).strip():
+			raise_invalid_input(message=message, details={"field": fieldname})
 
 	address = frappe.get_doc(
 		{
@@ -311,7 +301,6 @@ def create_mobile_app_user_address_data(
 				"link_name": app_user.customer,
 			},
 		)
-
 	address.insert(ignore_permissions=True)
 
 	if cbool(is_default) or not app_user.default_address:
@@ -322,7 +311,7 @@ def create_mobile_app_user_address_data(
 	return {"address": _serialize_address(address.name, default_address=current_default)}
 
 
-def set_default_address_data(address_id: str | None = None) -> dict:
+def set_default_address_data(address_id: str | None) -> dict:
 	app_user = get_current_mobile_app_user(fields=["name"])
 	address_name = _get_owned_address_name(app_user.name, address_id)
 	_set_default_address(app_user.name, address_name)
@@ -358,21 +347,11 @@ def _set_default_address(app_user_name: str, address_name: str | None) -> None:
 			message=_("You do not have access to this address."),
 			details={"resource": "Address", "resource_id": address_name},
 		)
-
-	frappe.db.set_value(
-		"Mobile App User",
-		app_user_name,
-		"default_address",
-		address_name,
-		update_modified=False,
-	)
+	frappe.db.set_value("Mobile App User", app_user_name, "default_address", address_name, update_modified=False)
 
 
-def _serialize_address(address_name: str, *, default_address: str | None) -> dict:
-	address = _get_address_data(address_name)
-	if not address:
-		raise_not_found(resource_name="Address", resource_id=address_name)
-
+def _serialize_address(address_name: str, *, default_address: str | None = None) -> dict:
+	address = _get_address_data(address_name) or {}
 	address["is_default"] = address_name == default_address
 	return address
 
@@ -380,7 +359,6 @@ def _serialize_address(address_name: str, *, default_address: str | None) -> dic
 def _get_address_data(address_name: str | None) -> dict | None:
 	if not address_name:
 		return None
-
 	address = frappe.db.get_value(
 		"Address",
 		address_name,
@@ -401,7 +379,6 @@ def _get_address_data(address_name: str | None) -> dict | None:
 	)
 	if not address:
 		return None
-
 	address_doc = frappe.get_cached_doc("Address", address_name)
 	return {
 		"id": address.name,
@@ -441,7 +418,6 @@ def _get_mode_of_payment(mode_of_payment: str | None) -> dict | None:
 def _validate_default_payment_method(mode_of_payment: str | None) -> None:
 	if not mode_of_payment:
 		return
-
 	is_app_payment_method = frappe.db.get_value("Mode of Payment", mode_of_payment, "is_app_payment_method")
 	if not is_app_payment_method:
 		raise_invalid_input(

@@ -4,36 +4,32 @@ import hashlib
 import secrets
 from typing import Final
 
-
 OTP_LENGTH: Final[int] = 6
 ACCESS_TOKEN_BYTES: Final[int] = 32
 
 
-def normalize_mobile_no(value: str | None) -> str:
-	raw_value = (value or "").strip()
-	if not raw_value:
-		return ""
+def normalize_mobile_no(value: str | None) -> str | None:
+	if value is None:
+		return None
 
-	characters: list[str] = []
-	for index, char in enumerate(raw_value):
-		if char.isdigit():
-			characters.append(char)
-		elif char == "+" and index == 0:
-			characters.append(char)
+	raw = str(value).strip()
+	if not raw:
+		return None
 
-	normalized = "".join(characters)
-	if normalized.startswith("00"):
-		normalized = f"+{normalized[2:]}"
+	if raw.startswith("+"):
+		digits = "".join(ch for ch in raw[1:] if ch.isdigit())
+		return f"+{digits}" if digits else None
 
-	if normalized.startswith("+"):
-		digit_count = len(normalized) - 1
-	else:
-		digit_count = len(normalized)
-
-	if digit_count < 8 or digit_count > 15:
-		return ""
-
-	return normalized
+	digits = "".join(ch for ch in raw if ch.isdigit())
+	if not digits:
+		return None
+	if digits.startswith("00"):
+		digits = digits[2:]
+	if len(digits) == 8:
+		return f"+973{digits}"
+	if digits.startswith("973"):
+		return f"+{digits}"
+	return f"+{digits}"
 
 
 def mask_mobile_no(value: str | None) -> str | None:
@@ -41,11 +37,10 @@ def mask_mobile_no(value: str | None) -> str | None:
 	if not normalized:
 		return None
 
-	prefix = "+" if normalized.startswith("+") else ""
-	digits = normalized[1:] if prefix else normalized
+	digits = normalized[1:]
 	if len(digits) <= 4:
-		return f"{prefix}{'*' * len(digits)}"
-	return f"{prefix}{'*' * (len(digits) - 4)}{digits[-4:]}"
+		return normalized
+	return f"+{'*' * (len(digits) - 4)}{digits[-4:]}"
 
 
 def hash_secret(value: str) -> str:

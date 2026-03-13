@@ -10,13 +10,18 @@ from pharmacy.services.profile_service import (
 
 
 @frappe.whitelist(allow_guest=True)
-def get_profile() -> dict:
+def get_mobile_app_user_profile() -> dict:
 	return execute_api(get_mobile_app_user_profile_data)
 
 
 @frappe.whitelist(allow_guest=True)
-def get_mobile_app_user_profile() -> dict:
-	return execute_api(get_mobile_app_user_profile_data)
+def update_mobile_app_user_profile() -> dict:
+	return execute_api(update_mobile_app_user_profile_data, dict(frappe.form_dict))
+
+
+@frappe.whitelist(allow_guest=True)
+def get_profile() -> dict:
+	return get_mobile_app_user_profile()
 
 
 @frappe.whitelist(allow_guest=True)

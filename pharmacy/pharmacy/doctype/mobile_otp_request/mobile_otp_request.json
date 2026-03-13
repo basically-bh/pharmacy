@@ -1,39 +1,31 @@
 {
  "actions": [],
- "allow_rename": 1,
  "autoname": "hash",
- "creation": "2026-03-12 17:15:00.000000",
+ "creation": "2026-03-13 16:31:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "identity_section",
   "mobile_no",
   "mobile_app_user",
-  "otp_section",
+  "delivery_channel",
   "status",
   "otp_hash",
   "attempt_count",
   "max_attempts",
-  "expires_at",
   "sent_on",
+  "expires_at",
   "verified_on",
-  "locked_on",
   "consumed_on",
-  "meta_section",
-  "request_ip",
-  "delivery_channel"
+  "locked_on",
+  "request_ip"
  ],
  "fields": [
-  {
-   "fieldname": "identity_section",
-   "fieldtype": "Section Break",
-   "label": "Identity"
-  },
   {
    "fieldname": "mobile_no",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Mobile Number",
+   "label": "Mobile No",
+   "options": "Phone",
    "reqd": 1
   },
   {
@@ -41,12 +33,15 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Mobile App User",
-   "options": "Mobile App User"
+   "options": "Mobile App User",
+   "reqd": 1
   },
   {
-   "fieldname": "otp_section",
-   "fieldtype": "Section Break",
-   "label": "OTP"
+   "default": "SMS",
+   "fieldname": "delivery_channel",
+   "fieldtype": "Select",
+   "label": "Delivery Channel",
+   "options": "SMS"
   },
   {
    "default": "Pending",
@@ -54,12 +49,11 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "Pending\nVerified\nLocked\nExpired\nConsumed"
+   "options": "Pending\nConsumed\nExpired\nLocked"
   },
   {
    "fieldname": "otp_hash",
-   "fieldtype": "Data",
-   "hidden": 1,
+   "fieldtype": "Password",
    "label": "OTP Hash",
    "read_only": 1,
    "reqd": 1
@@ -79,29 +73,21 @@
    "read_only": 1
   },
   {
-   "fieldname": "expires_at",
-   "fieldtype": "Datetime",
-   "label": "Expires At",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "sent_on",
    "fieldtype": "Datetime",
    "label": "Sent On",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
+  },
+  {
+   "fieldname": "expires_at",
+   "fieldtype": "Datetime",
+   "label": "Expires At",
+   "read_only": 1
   },
   {
    "fieldname": "verified_on",
    "fieldtype": "Datetime",
    "label": "Verified On",
-   "read_only": 1
-  },
-  {
-   "fieldname": "locked_on",
-   "fieldtype": "Datetime",
-   "label": "Locked On",
    "read_only": 1
   },
   {
@@ -111,31 +97,22 @@
    "read_only": 1
   },
   {
-   "fieldname": "meta_section",
-   "fieldtype": "Section Break",
-   "label": "Meta"
+   "fieldname": "locked_on",
+   "fieldtype": "Datetime",
+   "label": "Locked On",
+   "read_only": 1
   },
   {
    "fieldname": "request_ip",
    "fieldtype": "Data",
    "label": "Request IP",
    "read_only": 1
-  },
-  {
-   "fieldname": "delivery_channel",
-   "fieldtype": "Data",
-   "label": "Delivery Channel",
-   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-03-12 17:15:00.000000",
- "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "Mobile OTP Request",
- "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -152,7 +129,8 @@
   }
  ],
  "row_format": "Dynamic",
- "sort_field": "modified",
+ "search_fields": "mobile_no,mobile_app_user,status",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

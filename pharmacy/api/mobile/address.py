@@ -7,7 +7,7 @@ from pharmacy.services.mobile_app_user_service import (
 	get_mobile_app_user_addresses_data,
 	set_default_address_data,
 )
-from pharmacy.services.mobile_service import execute_api, get_request_value
+from pharmacy.services.mobile_service import cbool, execute_api, get_request_value
 
 
 @frappe.whitelist(allow_guest=True)
@@ -41,13 +41,10 @@ def create_mobile_app_user_address(
 		pincode=pincode or get_request_value("pincode"),
 		email_id=email_id or get_request_value("email_id"),
 		phone=phone or get_request_value("phone"),
-		is_default=is_default if is_default is not None else get_request_value("is_default"),
+		is_default=is_default if is_default is not None else cbool(get_request_value("is_default")),
 	)
 
 
 @frappe.whitelist(allow_guest=True)
-def set_default_address(address_id: str | None = None) -> dict:
-	return execute_api(
-		set_default_address_data,
-		address_id=address_id or get_request_value("address_id", aliases=("id",)),
-	)
+def set_default_address(address_id: str | None = None, id: str | None = None) -> dict:
+	return execute_api(set_default_address_data, address_id=address_id or id or get_request_value("address_id", aliases=("id",)))
