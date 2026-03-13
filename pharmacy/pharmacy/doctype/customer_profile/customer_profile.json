@@ -11,10 +11,14 @@
   "user",
   "customer_name",
   "customer",
-  "national_id",
   "column_break_identity",
   "account_status",
   "profile_completion_status",
+  "personal_information_section",
+  "national_id",
+  "mobile_no",
+  "column_break_ajit",
+  "date_of_birth",
   "preferences_section",
   "marketing_opt_in",
   "push_notifications_enabled",
@@ -109,6 +113,26 @@
    "fieldtype": "Data",
    "label": "National ID",
    "unique": 1
+  },
+  {
+   "fieldname": "mobile_no",
+   "fieldtype": "Data",
+   "label": "Mobile Number",
+   "unique": 1
+  },
+  {
+   "fieldname": "personal_information_section",
+   "fieldtype": "Section Break",
+   "label": "Personal Information"
+  },
+  {
+   "fieldname": "column_break_ajit",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth"
   }
  ],
  "grid_page_length": 50,
@@ -131,7 +155,7 @@
    "link_fieldname": "customer_profile"
   }
  ],
- "modified": "2026-03-11 15:51:40.266539",
+ "modified": "2026-03-12 17:15:00.000000",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "Customer Profile",
@@ -152,7 +176,7 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "customer_name,customer,user,national_id",
+ "search_fields": "customer_name,customer,user,national_id,mobile_no",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

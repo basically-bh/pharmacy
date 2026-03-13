@@ -7,6 +7,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from pharmacy.utils.mobile_auth import normalize_mobile_no
+
 
 class CustomerProfile(Document):
 	"""Pharmacy-specific extension layer for customer state.
@@ -20,6 +22,7 @@ class CustomerProfile(Document):
 
 	def validate(self) -> None:
 		self._ensure_unique_link("user", _("User"))
+		self._sync_mobile_no()
 
 	def _ensure_unique_link(self, fieldname: str, label: str) -> None:
 		value = self.get(fieldname)
@@ -42,3 +45,9 @@ class CustomerProfile(Document):
 					frappe.bold(value),
 				)
 			)
+
+	def _sync_mobile_no(self) -> None:
+		user_mobile_no = frappe.db.get_value("User", self.user, "mobile_no") if self.user else None
+		candidate_mobile_no = self.mobile_no or user_mobile_no
+		normalized_mobile_no = normalize_mobile_no(candidate_mobile_no)
+		self.mobile_no = normalized_mobile_no or ""

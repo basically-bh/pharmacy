@@ -79,7 +79,7 @@ class AppOrder(Document):
 		profile = frappe.db.get_value(
 			"Customer Profile",
 			self.customer_profile,
-			["customer", "default_address", "user"],
+			["customer", "default_address", "user", "mobile_no"],
 			as_dict=True,
 		)
 		if not profile:
@@ -93,8 +93,8 @@ class AppOrder(Document):
 		if profile.default_address and not self.delivery_address:
 			self.delivery_address = profile.default_address
 
-		if profile.user and not self.contact_mobile:
-			self.contact_mobile = frappe.db.get_value("User", profile.user, "mobile_no")
+		if profile.mobile_no and not self.contact_mobile:
+			self.contact_mobile = profile.mobile_no
 
 	def apply_item_pricing(self) -> None:
 		for row in self.get("items") or []:

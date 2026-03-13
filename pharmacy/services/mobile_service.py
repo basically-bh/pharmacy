@@ -53,14 +53,10 @@ def execute_api(method, /, *args, **kwargs) -> dict:
 
 
 def require_authenticated_user() -> str:
-	user = frappe.session.user
-	if not user or user == "Guest":
-		raise MobileApiError(
-			code="forbidden",
-			message=_("Authentication is required."),
-			http_status_code=403,
-		)
-	return user
+	from pharmacy.services.auth_service import get_authenticated_mobile_context
+
+	context = get_authenticated_mobile_context(required=True)
+	return context.user
 
 
 def get_current_customer_profile(
@@ -68,23 +64,28 @@ def get_current_customer_profile(
 	*,
 	required: bool = True,
 ) -> frappe._dict | None:
-	user = require_authenticated_user()
 	field_list = list(fields or ["name", "user", "customer", "customer_name"])
 	if "name" not in field_list:
 		field_list.insert(0, "name")
 
-	profile = frappe.db.get_value(
-		"Customer Profile",
-		{"user": user},
-		field_list,
-		as_dict=True,
-	)
+	from pharmacy.services.auth_service import get_authenticated_mobile_context
+
+	context = get_authenticated_mobile_context(required=required)
+	if not context:
+		return None
+
+	profile = None
+	if context.get("profile"):
+		profile_name = context.profile.name
+		profile = frappe.db.get_value("Customer Profile", profile_name, field_list, as_dict=True)
+	else:
+		profile = frappe.db.get_value("Customer Profile", {"user": context.user}, field_list, as_dict=True)
 	if not profile:
 		if not required:
 			return None
 		raise_not_found(
 			resource_name="Customer Profile",
-			resource_id=user,
+			resource_id=context.user,
 			message=_("Customer Profile not found for the authenticated user."),
 		)
 	return profile
@@ -147,13 +148,76 @@ def cbool(value: int | str | bool | None) -> bool:
 	return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
 
-def get_request_value(key: str, aliases: tuple[str, ...] = ()) -> str | None:
+def get_request_value(key: str, aliases: tuple[str, ...] = ()) -> str | int | float | bool | None:
 	for candidate in (key, *aliases):
-		value = frappe.form_dict.get(candidate)
-		if value is None:
-			continue
-		return value.strip() if isinstance(value, str) else value
+		for source in (
+			_get_request_json(),
+			getattr(frappe.local, "form_dict", None),
+			getattr(frappe, "form_dict", None),
+			_get_request_args(),
+		):
+			value = _get_mapping_value(source, candidate)
+			if value is None:
+				continue
+			return value.strip() if isinstance(value, str) else value
 	return None
+
+
+def log_mobile_request_debug(endpoint: str, *, resolved: dict) -> None:
+	request = getattr(frappe, "request", None)
+	debug_payload = {
+		"endpoint": endpoint,
+		"method": getattr(request, "method", None),
+		"content_type": getattr(request, "content_type", None),
+		"query_params": _coerce_request_mapping(_get_request_args()),
+		"parsed_json": _coerce_request_mapping(_get_request_json()),
+		"form_dict": _coerce_request_mapping(getattr(frappe.local, "form_dict", None)),
+		"resolved": resolved,
+	}
+	frappe.logger("pharmacy.mobile_api").warning("Mobile API request debug: %s", debug_payload)
+
+
+def _get_request_json():
+	request = getattr(frappe, "request", None)
+	if not request or not hasattr(request, "get_json"):
+		return None
+	try:
+		return request.get_json(silent=True)
+	except TypeError:
+		try:
+			return request.get_json()
+		except Exception:
+			return None
+	except Exception:
+		return None
+
+
+def _get_request_args():
+	request = getattr(frappe, "request", None)
+	return getattr(request, "args", None) if request else None
+
+
+def _get_mapping_value(source, key: str):
+	if source is None:
+		return None
+	if isinstance(source, dict):
+		return source.get(key)
+	getter = getattr(source, "get", None)
+	if callable(getter):
+		return getter(key)
+	return None
+
+
+def _coerce_request_mapping(source) -> dict:
+	if source is None:
+		return {}
+	if isinstance(source, dict):
+		return dict(source)
+	if hasattr(source, "lists"):
+		return {key: values if len(values) > 1 else values[0] for key, values in source.lists()}
+	if hasattr(source, "items"):
+		return dict(source.items())
+	return {}
 
 
 def raise_invalid_input(message: str, details: dict | None = None) -> None:
