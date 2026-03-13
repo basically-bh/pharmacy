@@ -115,11 +115,12 @@ def serialize_order_summary(row: frappe._dict, *, item_count: int) -> dict:
 
 
 def serialize_order_detail(doc) -> dict:
+	customer_name = getattr(doc, "customer_name", None) or getattr(doc, "full_name", None)
 	return {
 		"id": doc.name,
 		"customer_id": doc.customer or None,
 		"mobile_app_user_id": doc.mobile_app_user or None,
-		"customer_name": doc.customer_name or None,
+		"customer_name": customer_name or None,
 		"contact_mobile": doc.contact_mobile or None,
 		"delivery_address_id": doc.delivery_address or None,
 		"prescription_id": doc.prescription or None,

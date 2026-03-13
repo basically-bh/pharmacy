@@ -5,7 +5,6 @@ from frappe import _
 from frappe.utils import nowdate, nowtime
 
 from pharmacy.services.mobile_service import (
-	get_current_customer,
 	get_current_mobile_app_user,
 	raise_invalid_input,
 	raise_not_found,
@@ -16,28 +15,27 @@ APP_ORDER_NAMING_SERIES = "AO-.YY."
 
 
 def get_cart() -> dict:
-	app_user = get_current_mobile_app_user(fields=["name"])
+	app_user = get_current_mobile_app_user(fields=["name", "customer"])
 	cart = get_active_cart_doc_for_mobile_app_user(app_user.name, allow_missing=True)
-	return {"cart": serialize_cart(cart) if cart else None}
+	return {"cart": serialize_cart(cart) if cart else build_empty_cart(app_user)}
 
 
 def create_or_get_cart() -> dict:
-	app_user = get_current_mobile_app_user(fields=["name"])
+	app_user = get_current_mobile_app_user(fields=["name", "customer", "mobile_no", "default_address"])
 	cart = get_active_cart_doc_for_mobile_app_user(app_user.name, allow_missing=True)
 	if not cart:
-		cart = _create_cart(app_user.name)
+		cart = _create_cart(app_user)
 	return {"cart": serialize_cart(cart)}
 
 
 def add_item_to_cart(item_code: str | None, qty: int | float | str | None) -> dict:
-	app_user = get_current_mobile_app_user(fields=["name"])
-	cart = get_active_cart_doc_for_mobile_app_user(app_user.name, allow_missing=True)
-	if not cart:
-		cart = _create_cart(app_user.name)
-
+	app_user = get_current_mobile_app_user(fields=["name", "customer", "mobile_no", "default_address"])
 	item_code = _normalize_item_code(item_code)
 	qty_value = _parse_qty(qty, fieldname="qty")
 	_validate_cart_item(item_code)
+	cart = get_active_cart_doc_for_mobile_app_user(app_user.name, allow_missing=True)
+	if not cart:
+		cart = _create_cart(app_user)
 
 	row = _get_cart_item(cart, item_code)
 	if row:
@@ -92,6 +90,34 @@ def serialize_cart(doc) -> dict:
 	return data
 
 
+def build_empty_cart(app_user: frappe._dict) -> dict:
+	return {
+		"id": None,
+		"customer_id": app_user.customer or None,
+		"mobile_app_user_id": app_user.name,
+		"customer_name": None,
+		"contact_mobile": None,
+		"delivery_address_id": None,
+		"prescription_id": None,
+		"status": "Draft",
+		"source": "App",
+		"submitted": False,
+		"transaction": {
+			"date": None,
+			"time": None,
+		},
+		"totals": {
+			"currency": None,
+			"subtotal": 0,
+			"tax_amount": 0,
+			"grand_total": 0,
+		},
+		"items": [],
+		"item_count": 0,
+		"is_active_cart": False,
+	}
+
+
 def get_active_cart_doc_for_mobile_app_user(
 	mobile_app_user: str,
 	*,
@@ -121,20 +147,24 @@ def get_active_cart_doc_for_mobile_app_user(
 	return frappe.get_doc("App Order", active_carts[0].name)
 
 
-def _create_cart(mobile_app_user: str):
+def _create_cart(app_user: frappe._dict):
 	doc = frappe.new_doc("App Order")
+	doc.flags.ignore_mandatory = True
 	doc.naming_series = APP_ORDER_NAMING_SERIES
-	doc.mobile_app_user = mobile_app_user
-	doc.customer = get_current_customer(required=False)
+	doc.mobile_app_user = app_user.name
+	doc.customer = app_user.customer or None
+	doc.contact_mobile = app_user.mobile_no or None
+	doc.delivery_address = app_user.default_address or None
 	doc.transaction_date = nowdate()
 	doc.transaction_time = nowtime()
 	doc.source = "App"
 	doc.order_status = "Draft"
-	doc.insert(ignore_permissions=True)
+	doc.insert(ignore_permissions=True, ignore_mandatory=True)
 	return doc
 
 
 def _save_cart(doc) -> None:
+	doc.flags.ignore_mandatory = True
 	doc.order_status = "Draft"
 	doc.save(ignore_permissions=True)
 
@@ -169,12 +199,12 @@ def _validate_cart_item(item_code: str) -> None:
 	item = frappe.db.get_value(
 		"Item",
 		item_code,
-		["name", "show_in_mobile_app", "disabled", "is_hidden_in_app"],
+		["name", "show_in_mobile_app", "disabled"],
 		as_dict=True,
 	)
 	if not item:
 		raise_not_found(resource_name="Item", resource_id=item_code)
-	if not item.show_in_mobile_app or item.disabled or item.is_hidden_in_app:
+	if not item.show_in_mobile_app or item.disabled:
 		raise_invalid_input(
 			message=_("Item {0} is not available for the mobile cart.").format(item_code),
 			details={"item_code": item_code},
@@ -186,11 +216,3 @@ def _get_cart_item(doc, item_code: str):
 		if row.item_code == item_code:
 			return row
 	return None
-
-
-def resolve_cart_item_code(item_code: str | None) -> str | None:
-	return item_code
-
-
-def resolve_cart_qty(qty: int | float | str | None) -> int | float | str | bool | None:
-	return qty

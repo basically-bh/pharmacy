@@ -22,8 +22,6 @@ def validate_mobile_bearer_auth() -> None:
 	if not context:
 		return
 
-	# Frappe raises AuthenticationError for any Authorization header unless the
-	# request is marked as authenticated before routing reaches /api/method.
 	form_dict = frappe.local.form_dict
 	frappe.set_user(context.user)
 	frappe.local.form_dict = form_dict

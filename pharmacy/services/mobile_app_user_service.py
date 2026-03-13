@@ -205,8 +205,7 @@ def get_mobile_app_user_profile_data() -> dict:
 	return {"mobile_app_user": serialize_mobile_app_user_profile(frappe._dict(app_user.as_dict()))}
 
 
-def update_mobile_app_user_profile_data(payload: dict | None = None, **kwargs) -> dict:
-	payload = {**(payload or {}), **kwargs}
+def update_mobile_app_user_profile_data(payload: dict) -> dict:
 	app_user = frappe.get_doc("Mobile App User", get_current_mobile_app_user(fields=["name"]).name)
 	updatable_fields = (
 		"first_name",
