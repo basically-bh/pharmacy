@@ -5,7 +5,8 @@ from frappe import _
 from frappe.utils import nowdate, nowtime
 
 from pharmacy.services.mobile_service import (
-	get_current_customer_profile,
+	get_current_customer,
+	get_current_mobile_app_user,
 	raise_invalid_input,
 	raise_not_found,
 )
@@ -15,24 +16,24 @@ APP_ORDER_NAMING_SERIES = "AO-.YY."
 
 
 def get_cart() -> dict:
-	profile = get_current_customer_profile(fields=["name"])
-	cart = get_active_cart_doc_for_profile(profile.name, allow_missing=True)
+	app_user = get_current_mobile_app_user(fields=["name"])
+	cart = get_active_cart_doc_for_mobile_app_user(app_user.name, allow_missing=True)
 	return {"cart": serialize_cart(cart) if cart else None}
 
 
 def create_or_get_cart() -> dict:
-	profile = get_current_customer_profile(fields=["name"])
-	cart = get_active_cart_doc_for_profile(profile.name, allow_missing=True)
+	app_user = get_current_mobile_app_user(fields=["name"])
+	cart = get_active_cart_doc_for_mobile_app_user(app_user.name, allow_missing=True)
 	if not cart:
-		cart = _create_cart(profile.name)
+		cart = _create_cart(app_user.name)
 	return {"cart": serialize_cart(cart)}
 
 
 def add_item_to_cart(item_code: str | None, qty: int | float | str | None) -> dict:
-	profile = get_current_customer_profile(fields=["name"])
-	cart = get_active_cart_doc_for_profile(profile.name, allow_missing=True)
+	app_user = get_current_mobile_app_user(fields=["name"])
+	cart = get_active_cart_doc_for_mobile_app_user(app_user.name, allow_missing=True)
 	if not cart:
-		cart = _create_cart(profile.name)
+		cart = _create_cart(app_user.name)
 
 	item_code = _normalize_item_code(item_code)
 	qty_value = _parse_qty(qty, fieldname="qty")
@@ -56,8 +57,8 @@ def add_item_to_cart(item_code: str | None, qty: int | float | str | None) -> di
 
 
 def update_cart_item_qty(item_code: str | None, qty: int | float | str | None) -> dict:
-	profile = get_current_customer_profile(fields=["name"])
-	cart = get_active_cart_doc_for_profile(profile.name)
+	app_user = get_current_mobile_app_user(fields=["name"])
+	cart = get_active_cart_doc_for_mobile_app_user(app_user.name)
 	item_code = _normalize_item_code(item_code)
 	qty_value = _parse_qty(qty, fieldname="qty")
 
@@ -71,8 +72,8 @@ def update_cart_item_qty(item_code: str | None, qty: int | float | str | None) -
 
 
 def remove_item_from_cart(item_code: str | None) -> dict:
-	profile = get_current_customer_profile(fields=["name"])
-	cart = get_active_cart_doc_for_profile(profile.name)
+	app_user = get_current_mobile_app_user(fields=["name"])
+	cart = get_active_cart_doc_for_mobile_app_user(app_user.name)
 	item_code = _normalize_item_code(item_code)
 
 	row = _get_cart_item(cart, item_code)
@@ -91,8 +92,8 @@ def serialize_cart(doc) -> dict:
 	return data
 
 
-def get_active_cart_doc_for_profile(
-	customer_profile: str,
+def get_active_cart_doc_for_mobile_app_user(
+	mobile_app_user: str,
 	*,
 	allow_missing: bool = False,
 ):
@@ -100,7 +101,7 @@ def get_active_cart_doc_for_profile(
 		"App Order",
 		fields=["name"],
 		filters={
-			"customer_profile": customer_profile,
+			"mobile_app_user": mobile_app_user,
 			"docstatus": 0,
 		},
 		order_by="modified desc, creation desc",
@@ -108,22 +109,23 @@ def get_active_cart_doc_for_profile(
 	if not active_carts:
 		if allow_missing:
 			return None
-		raise_not_found(resource_name="Cart", resource_id=customer_profile)
+		raise_not_found(resource_name="Cart", resource_id=mobile_app_user)
 	if len(active_carts) > 1:
 		raise_invalid_input(
-			message=_("Multiple active carts found for this customer profile."),
+			message=_("Multiple active carts found for this mobile app user."),
 			details={
-				"customer_profile": customer_profile,
+				"mobile_app_user": mobile_app_user,
 				"cart_ids": [row.name for row in active_carts],
 			},
 		)
 	return frappe.get_doc("App Order", active_carts[0].name)
 
 
-def _create_cart(customer_profile: str):
+def _create_cart(mobile_app_user: str):
 	doc = frappe.new_doc("App Order")
 	doc.naming_series = APP_ORDER_NAMING_SERIES
-	doc.customer_profile = customer_profile
+	doc.mobile_app_user = mobile_app_user
+	doc.customer = get_current_customer(required=False)
 	doc.transaction_date = nowdate()
 	doc.transaction_time = nowtime()
 	doc.source = "App"

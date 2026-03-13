@@ -11,15 +11,13 @@ from frappe.utils import flt
 from erpnext.accounts.doctype.pricing_rule.pricing_rule import get_pricing_rule_for_item
 from erpnext.stock.get_item_details import get_price_list_rate
 from pharmacy.services.checkout_service import prepare_app_order_for_submission
-from pharmacy.utils.customer_profile import validate_customer_matches_profile
 from pharmacy.utils.vat import calculate_vat_amount, get_applicable_item_vat_rate
 
 
 class AppOrder(Document):
 	def validate(self) -> None:
-		validate_customer_matches_profile(self)
 		self.set_parent_defaults()
-		self.sync_customer_profile_details()
+		self.sync_mobile_app_user_details()
 		self.apply_item_pricing()
 		self.calculate_totals()
 
@@ -29,7 +27,7 @@ class AppOrder(Document):
 	@frappe.whitelist()
 	def refresh_pricing_for_form(self) -> dict:
 		self.set_parent_defaults()
-		self.sync_customer_profile_details()
+		self.sync_mobile_app_user_details()
 		self.apply_item_pricing()
 		self.calculate_totals()
 		return self.get_pricing_refresh_payload()
@@ -72,29 +70,29 @@ class AppOrder(Document):
 		if self.company and not self.currency:
 			self.currency = erpnext.get_company_currency(self.company)
 
-	def sync_customer_profile_details(self) -> None:
-		if not self.customer_profile:
+	def sync_mobile_app_user_details(self) -> None:
+		if not self.mobile_app_user:
 			return
 
-		profile = frappe.db.get_value(
-			"Customer Profile",
-			self.customer_profile,
-			["customer", "default_address", "user"],
+		app_user = frappe.db.get_value(
+			"Mobile App User",
+			self.mobile_app_user,
+			["customer", "default_address", "mobile_no", "full_name"],
 			as_dict=True,
 		)
-		if not profile:
+		if not app_user:
 			return
 
-		# Customer Profile provides defaults for the order, but it should not
-		# erase values the user selected directly on the App Order form.
-		if profile.customer:
-			self.customer = profile.customer
+		if app_user.customer:
+			self.customer = app_user.customer
+		elif not self.customer_name:
+			self.customer_name = app_user.full_name
 
-		if profile.default_address and not self.delivery_address:
-			self.delivery_address = profile.default_address
+		if app_user.default_address and not self.delivery_address:
+			self.delivery_address = app_user.default_address
 
-		if profile.user and not self.contact_mobile:
-			self.contact_mobile = frappe.db.get_value("User", profile.user, "mobile_no")
+		if app_user.mobile_no and not self.contact_mobile:
+			self.contact_mobile = app_user.mobile_no
 
 	def apply_item_pricing(self) -> None:
 		for row in self.get("items") or []:
@@ -224,7 +222,7 @@ def refresh_app_order_pricing(doc: dict | str) -> dict:
 
 	app_order = frappe.get_doc(doc)
 	app_order.set_parent_defaults()
-	app_order.sync_customer_profile_details()
+	app_order.sync_mobile_app_user_details()
 	app_order.apply_item_pricing()
 	app_order.calculate_totals()
 	return app_order.get_pricing_refresh_payload()

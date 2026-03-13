@@ -67,7 +67,7 @@ frappe.ui.form.on("App Order", {
 			refreshAppOrderPricing(frm);
 		}
 	},
-	customer_profile(frm) {
+	mobile_app_user(frm) {
 		refreshAppOrderPricing(frm);
 	},
 	price_list(frm) {

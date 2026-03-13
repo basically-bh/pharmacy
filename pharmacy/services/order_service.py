@@ -6,7 +6,7 @@ from frappe import _
 from pharmacy.services.mobile_service import (
 	build_list_response,
 	cbool,
-	get_current_customer_profile,
+	get_current_mobile_app_user,
 	get_owned_resource_name,
 	get_request_value,
 	parse_pagination,
@@ -16,7 +16,7 @@ from pharmacy.services.mobile_service import (
 ORDER_LIST_FIELDS = [
 	"name",
 	"customer",
-	"customer_profile",
+	"mobile_app_user",
 	"customer_name",
 	"prescription",
 	"transaction_date",
@@ -45,9 +45,9 @@ def list_order_data(
 	page_size: int | str = 20,
 	status: str | None = None,
 ) -> dict:
-	profile = get_current_customer_profile(fields=["name"])
+	app_user = get_current_mobile_app_user(fields=["name"])
 	page_number, size, offset = parse_pagination(page, page_size)
-	filters = {"customer_profile": profile.name}
+	filters = {"mobile_app_user": app_user.name}
 	if status:
 		if status not in VALID_ORDER_STATUSES:
 			raise_invalid_input(
@@ -76,7 +76,7 @@ def list_order_data(
 
 
 def get_order_data(order_id: str | None = None) -> dict:
-	profile = get_current_customer_profile(fields=["name"])
+	app_user = get_current_mobile_app_user(fields=["name"])
 	name = (order_id or get_request_value("order_id", aliases=("id",)) or "").strip()
 	if not name:
 		raise_invalid_input(
@@ -87,7 +87,7 @@ def get_order_data(order_id: str | None = None) -> dict:
 	order_name = get_owned_resource_name(
 		doctype="App Order",
 		resource_id=name,
-		profile_name=profile.name,
+		owner_name=app_user.name,
 		resource_label="Order",
 	)
 
@@ -118,7 +118,7 @@ def serialize_order_detail(doc) -> dict:
 	return {
 		"id": doc.name,
 		"customer_id": doc.customer or None,
-		"customer_profile_id": doc.customer_profile or None,
+		"mobile_app_user_id": doc.mobile_app_user or None,
 		"customer_name": doc.customer_name or None,
 		"contact_mobile": doc.contact_mobile or None,
 		"delivery_address_id": doc.delivery_address or None,
