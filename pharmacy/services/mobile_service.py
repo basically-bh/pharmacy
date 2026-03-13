@@ -72,7 +72,10 @@ def get_current_mobile_app_user(
 	from pharmacy.services.auth_service import get_authenticated_mobile_context
 
 	context = frappe._dict(get_authenticated_mobile_context())
-	app_user_name = context.get("mobile_app_user_id")
+	app_user = context.get("mobile_app_user")
+	app_user_name = context.get("mobile_app_user_id") or getattr(app_user, "name", None) or (
+		app_user.get("name") if isinstance(app_user, dict) else None
+	)
 	if not app_user_name:
 		if not required:
 			return None

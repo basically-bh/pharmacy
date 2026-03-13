@@ -10,7 +10,7 @@ from pharmacy.services.cart_service import (
 	update_cart_item_qty as update_cart_item_qty_data,
 )
 from pharmacy.services.checkout_service import checkout_cart as checkout_cart_data
-from pharmacy.services.mobile_service import execute_api
+from pharmacy.services.mobile_service import execute_api, get_request_value
 from pharmacy.services.order_service import get_order_data, list_order_data
 
 
@@ -40,7 +40,11 @@ def create_or_get_cart() -> dict:
 
 @frappe.whitelist(allow_guest=True)
 def add_item_to_cart(item_code: str | None = None, qty: int | float | str | None = None) -> dict:
-	return execute_api(add_item_to_cart_data, item_code=item_code, qty=qty)
+	return execute_api(
+		add_item_to_cart_data,
+		item_code=item_code or get_request_value("item_code", aliases=("product_id", "id")),
+		qty=qty if qty is not None else get_request_value("qty", aliases=("quantity",)),
+	)
 
 
 @frappe.whitelist(allow_guest=True)

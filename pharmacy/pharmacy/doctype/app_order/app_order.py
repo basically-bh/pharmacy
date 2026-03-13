@@ -85,8 +85,8 @@ class AppOrder(Document):
 
 		if app_user.customer:
 			self.customer = app_user.customer
-		elif not self.customer_name:
-			self.customer_name = app_user.full_name
+		elif not self.full_name:
+			self.full_name = app_user.full_name
 
 		if app_user.default_address and not self.delivery_address:
 			self.delivery_address = app_user.default_address
