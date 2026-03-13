@@ -324,7 +324,7 @@ def set_default_address_data(address_id: str | None) -> dict:
 def get_app_payment_methods_data() -> dict:
 	payment_methods = frappe.get_all(
 		"Mode of Payment",
-		filters={"is_app_payment_method": 1},
+		filters={"show_in_mobile_app": 1},
 		fields=["name", "type"],
 		order_by="name asc",
 	)
@@ -401,7 +401,7 @@ def _get_mode_of_payment(mode_of_payment: str | None) -> dict | None:
 	row = frappe.db.get_value(
 		"Mode of Payment",
 		mode_of_payment,
-		["name", "type", "is_app_payment_method"],
+		["name", "type", "show_in_mobile_app"],
 		as_dict=True,
 	)
 	if not row:
@@ -410,15 +410,15 @@ def _get_mode_of_payment(mode_of_payment: str | None) -> dict | None:
 		"id": row.name,
 		"name": row.name,
 		"type": row.type or None,
-		"is_app_payment_method": cbool(row.is_app_payment_method),
+		"show_in_mobile_app": cbool(row.show_in_mobile_app),
 	}
 
 
 def _validate_default_payment_method(mode_of_payment: str | None) -> None:
 	if not mode_of_payment:
 		return
-	is_app_payment_method = frappe.db.get_value("Mode of Payment", mode_of_payment, "is_app_payment_method")
-	if not is_app_payment_method:
+	show_in_mobile_app = frappe.db.get_value("Mode of Payment", mode_of_payment, "show_in_mobile_app")
+	if not show_in_mobile_app:
 		raise_invalid_input(
 			message=_("Selected payment method is not available in the mobile app."),
 			details={"field": "default_payment_method", "value": mode_of_payment},
