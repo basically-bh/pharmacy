@@ -237,8 +237,8 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 	],
 	"Mode of Payment": [
 		{
-			"fieldname": "is_app_payment_method",
-			"label": "Is App Payment Method",
+			"fieldname": "show_in_mobile_app",
+			"label": "Show in Mobile App",
 			"fieldtype": "Check",
 			"insert_after": "enabled",
 			"default": "0",

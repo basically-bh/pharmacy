@@ -110,7 +110,8 @@
    "default": "0",
    "fieldname": "is_mobile_no_verified",
    "fieldtype": "Check",
-   "label": "Is Mobile No Verified"
+   "label": "Is Mobile No Verified",
+   "read_only": 1
   },
   {
    "fieldname": "otp_verified_at",
@@ -160,6 +161,7 @@
    "fieldname": "default_payment_method",
    "fieldtype": "Link",
    "label": "Default Payment Method",
+   "link_filters": "[[\"Mode of Payment\",\"show_in_mobile_app\",\"=\",1]]",
    "options": "Mode of Payment"
   },
   {
@@ -251,7 +253,7 @@
    "link_fieldname": "mobile_app_user"
   }
  ],
- "modified": "2026-03-13 16:01:58.989612",
+ "modified": "2026-03-13 23:05:17.081361",
  "modified_by": "Administrator",
  "module": "Pharmacy",
  "name": "Mobile App User",
