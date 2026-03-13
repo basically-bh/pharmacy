@@ -186,3 +186,11 @@ def _get_cart_item(doc, item_code: str):
 		if row.item_code == item_code:
 			return row
 	return None
+
+
+def resolve_cart_item_code(item_code: str | None) -> str | None:
+	return item_code
+
+
+def resolve_cart_qty(qty: int | float | str | None) -> int | float | str | bool | None:
+	return qty
