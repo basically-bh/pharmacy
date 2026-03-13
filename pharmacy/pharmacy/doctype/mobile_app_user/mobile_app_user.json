@@ -1,0 +1,257 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-03-13 01:00:48.321798",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "mobile_no",
+  "first_name",
+  "last_name",
+  "full_name",
+  "country_code",
+  "customer",
+  "column_break_jmms",
+  "account_status",
+  "otp_verification_status",
+  "personal_information_section",
+  "national_id",
+  "date_of_birth",
+  "column_break_feav",
+  "gender",
+  "preferences_section",
+  "default_address",
+  "address_html",
+  "default_payment_method",
+  "column_break_hrdw",
+  "language",
+  "allow_push_notifications",
+  "section_break_shnz",
+  "is_mobile_no_verified",
+  "customer_created_on_checkout",
+  "otp_verified_at",
+  "last_login",
+  "last_active_at",
+  "column_break_ysea",
+  "last_device_name",
+  "last_device_platform",
+  "app_version"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series"
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name"
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name"
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mobile_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Mobile No",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "personal_information_section",
+   "fieldtype": "Section Break",
+   "label": "Personal Information"
+  },
+  {
+   "fieldname": "national_id",
+   "fieldtype": "Data",
+   "label": "National ID",
+   "unique": 1
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth"
+  },
+  {
+   "fieldname": "column_break_feav",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gender",
+   "fieldtype": "Select",
+   "label": "Gender",
+   "options": "\nMale\nFemale"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_jmms",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "account_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Account Status",
+   "options": "Active\nInactive\nBlocked"
+  },
+  {
+   "fieldname": "otp_verification_status",
+   "fieldtype": "Select",
+   "label": "OTP Verification Status",
+   "options": "Not Verified\nPending\nVerified\nFailed\nBlocked",
+   "read_only": 1
+  },
+  {
+   "fieldname": "preferences_section",
+   "fieldtype": "Section Break",
+   "label": "Preferences "
+  },
+  {
+   "fieldname": "default_address",
+   "fieldtype": "Link",
+   "label": "Default Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Select",
+   "label": "Language",
+   "options": "English\nArabic"
+  },
+  {
+   "fieldname": "column_break_hrdw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_push_notifications",
+   "fieldtype": "Check",
+   "label": "Allow Push Notifications"
+  },
+  {
+   "fieldname": "default_payment_method",
+   "fieldtype": "Link",
+   "label": "Default Payment Method",
+   "link_filters": "[[\"Mode of Payment\",\"is_app_payment_method\",\"=\",1]]",
+   "options": "Mode of Payment"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_shnz",
+   "fieldtype": "Section Break",
+   "label": "App Usage Details"
+  },
+  {
+   "fieldname": "last_login",
+   "fieldtype": "Datetime",
+   "label": "Last Login",
+   "read_only": 1
+  },
+  {
+   "default": "+973",
+   "fieldname": "country_code",
+   "fieldtype": "Data",
+   "label": "Country Code",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_mobile_no_verified",
+   "fieldtype": "Check",
+   "label": "Mobile No Verified",
+   "read_only": 1
+  },
+  {
+   "fieldname": "otp_verified_at",
+   "fieldtype": "Datetime",
+   "label": "OTP Verified",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_active_at",
+   "fieldtype": "Datetime",
+   "label": "Last Active",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_device_name",
+   "fieldtype": "Data",
+   "label": "Device Info"
+  },
+  {
+   "fieldname": "app_version",
+   "fieldtype": "Data",
+   "label": "App Version"
+  },
+  {
+   "default": "0",
+   "fieldname": "customer_created_on_checkout",
+   "fieldtype": "Check",
+   "label": "Customer Created",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ysea",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_device_platform",
+   "fieldtype": "Data",
+   "label": "Device Platform"
+  },
+  {
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "address_html",
+   "fieldtype": "HTML",
+   "label": "Address HTML",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-13 12:39:13.852810",
+ "modified_by": "Administrator",
+ "module": "Pharmacy",
+ "name": "Mobile App User",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "full_name"
+}
