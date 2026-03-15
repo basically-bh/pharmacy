@@ -4,6 +4,14 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 PHARMACY_MODULE = "Pharmacy"
+MANAGED_OPTIONAL_PROPERTIES = {
+	"default": None,
+	"depends_on": None,
+	"description": None,
+	"collapsible": 0,
+	"options": None,
+	"read_only": 0,
+}
 
 
 def apply_custom_fields(custom_fields: dict[str, list[dict]]) -> None:
@@ -17,6 +25,7 @@ def apply_custom_fields(custom_fields: dict[str, list[dict]]) -> None:
 
 	create_custom_fields(normalized_fields, ignore_validate=True, update=True)
 	_sync_managed_field_metadata(normalized_fields)
+	_delete_stale_managed_fields(normalized_fields)
 
 	frappe.clear_cache()
 	frappe.db.commit()
@@ -71,9 +80,33 @@ def _sync_managed_field_metadata(custom_fields: dict[str, list[dict]]) -> None:
 					custom_field.set(key, value)
 					has_changes = True
 
+			for key, fallback_value in MANAGED_OPTIONAL_PROPERTIES.items():
+				if key in field_definition:
+					continue
+				if custom_field.get(key) != fallback_value:
+					custom_field.set(key, fallback_value)
+					has_changes = True
+
 			if not has_changes:
 				continue
 
 			custom_field.flags.ignore_validate = True
 			custom_field.flags.ignore_permissions = True
 			custom_field.save()
+
+
+def _delete_stale_managed_fields(custom_fields: dict[str, list[dict]]) -> None:
+	"""Remove Pharmacy-managed live fields that are no longer defined in code."""
+	for doctype, field_definitions in custom_fields.items():
+		expected_fieldnames = {field_definition["fieldname"] for field_definition in field_definitions}
+		live_fields = frappe.get_all(
+			"Custom Field",
+			filters={"dt": doctype, "module": PHARMACY_MODULE},
+			fields=["name", "fieldname"],
+		)
+
+		for live_field in live_fields:
+			if live_field.fieldname in expected_fieldnames:
+				continue
+
+			frappe.delete_doc("Custom Field", live_field.name, force=True, ignore_missing=True)

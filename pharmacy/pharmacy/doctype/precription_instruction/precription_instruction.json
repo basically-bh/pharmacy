@@ -1,0 +1,130 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-14 19:47:09.499211",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "prescription_instruction_type",
+  "route",
+  "dosage_schedule",
+  "dosage",
+  "frequency",
+  "timing",
+  "duration",
+  "column_break_gbgk",
+  "instructions",
+  "notes",
+  "medicine_supplement_details_section",
+  "item"
+ ],
+ "fields": [
+  {
+   "fieldname": "route",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Route",
+   "options": "Oral\nIntravenous (IV)\nIntramuscular (IM)\nSubcutaneous (SC)\nTopical\nTransdermal\nInhalation\nSublingual\nBuccal\nRectal\nVaginal\nNasal\nOphthalmic\nOtic",
+   "reqd": 1
+  },
+  {
+   "description": "Select \u2018Custom\u2019 if you need to enter a specific dosage or frequency manually.",
+   "fieldname": "dosage_schedule",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Dosage Schedule",
+   "options": "1-0-0\n0-1-0\n0-0-1\n1-0-1\n1-1-0\n1-1-1\n2-0-2\n2-2-2\nAs Needed (PRN)\nCustom",
+   "reqd": 1
+  },
+  {
+   "fieldname": "dosage",
+   "fieldtype": "Data",
+   "label": "Dosage",
+   "read_only_depends_on": "eval:doc.dosage_schedule!=\"Custom\""
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Frequency",
+   "options": "Once Daily\nTwice Daily\nThree Times Daily\nFour Times Daily\nEvery 6 Hours\nEvery 8 Hours\nEvery 12 Hours\nWeekly\nMonthly\nAs Needed (PRN)",
+   "read_only_depends_on": "eval:doc.dosage_schedule!=\"Custom\"",
+   "reqd": 1
+  },
+  {
+   "fieldname": "timing",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "TIming",
+   "options": "Before Meals\nAfter Meals\nWith Meals\nMorning\nAfternoon\nEvening\nAt Bedtime\nAs Directed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "duration",
+   "fieldtype": "Select",
+   "label": "Duration",
+   "options": "3 Days\n5 Days\n7 Days\n10 Days\n14 Days\n21 Days\n1 Month\nUntil Finished\nAs Directed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_gbgk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "instructions",
+   "fieldtype": "Small Text",
+   "label": "Instructions",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "depends_on": "eval:doc.prescription_instruction_type == \"Medicine-Specific\"",
+   "fieldname": "medicine_supplement_details_section",
+   "fieldtype": "Section Break",
+   "label": "Medicine Details"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "prescription_instruction_type",
+   "fieldtype": "Select",
+   "label": "Instruction Type",
+   "options": "General Template\nMedicine-Specific"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-14 21:14:31.836845",
+ "modified_by": "Administrator",
+ "module": "Pharmacy",
+ "name": "Precription Instruction",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

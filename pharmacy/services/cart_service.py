@@ -20,14 +20,6 @@ def get_cart() -> dict:
 	return {"cart": serialize_cart(cart) if cart else build_empty_cart(app_user)}
 
 
-def create_or_get_cart() -> dict:
-	app_user = get_current_mobile_app_user(fields=["name", "customer", "mobile_no", "default_address"])
-	cart = get_active_cart_doc_for_mobile_app_user(app_user.name, allow_missing=True)
-	if not cart:
-		cart = _create_cart(app_user)
-	return {"cart": serialize_cart(cart)}
-
-
 def add_item_to_cart(item_code: str | None, qty: int | float | str | None) -> dict:
 	app_user = get_current_mobile_app_user(fields=["name", "customer", "mobile_no", "default_address"])
 	item_code = _normalize_item_code(item_code)
