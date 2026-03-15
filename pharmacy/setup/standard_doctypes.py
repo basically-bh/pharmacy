@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 SHOW_IN_APP_DEPENDS_ON = "eval:doc.show_in_mobile_app==1"
-DETAILS_SECTION_DEPENDS_ON = "eval:['Medicine', 'Supplement'].includes(doc.product_type)"
-MEDICINE_ONLY_DEPENDS_ON = "eval:doc.product_type=='Medicine'"
+DETAILS_SECTION_DEPENDS_ON = "eval:['Medicine', 'Supplement'].includes(doc.mobile_app_product_type)"
+MEDICINE_ONLY_DEPENDS_ON = "eval:doc.mobile_app_product_type=='Medicine'"
 
 
 def _section_break(fieldname: str, label: str | None = None, insert_after: str | None = None) -> dict:
@@ -87,23 +87,50 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			default="0",
 			depends_on="",
 		),
-		_section_break("mobile_app_classification_section", "Classification", "show_in_mobile_app"),
 		_app_item_field(
-			"featured",
-			"Featured",
-			"Check",
-			"mobile_app_classification_section",
-			default="0",
-		),
-		_app_item_field(
-			"product_type",
+			"mobile_app_product_type",
 			"Product Type",
 			"Select",
-			"featured",
+			"show_in_mobile_app",
 			options="\nMedicine\nSupplement\nMedical Device\nPersonal Care",
 		),
+		_app_item_field(
+			"mobile_app_featured",
+			"Featured",
+			"Check",
+			"mobile_app_product_type",
+			default="0",
+		),
+		_section_break("mobile_app_section", "App Experience", "mobile_app_featured"),
+		_app_item_field(
+			"mobile_app_short_description",
+			"Short Description",
+			"Small Text",
+			"mobile_app_section",
+		),
+		_app_item_field(
+			"mobile_app_long_description",
+			"Long Description",
+			"Text Editor",
+			"mobile_app_short_description",
+		),
+		_app_item_field(
+			"mobile_app_search_keywords",
+			"Search Keywords",
+			"Small Text",
+			"mobile_app_long_description",
+			description="Comma-separated keywords used by the mobile app catalog search.",
+		),
+		_app_item_field(
+			"mobile_app_symptom_tags",
+			"Symptom Tags",
+			"Small Text",
+			"mobile_app_search_keywords",
+			description="Comma-separated symptom tags for app discovery and recommendations.",
+			depends_on=DETAILS_SECTION_DEPENDS_ON,
+		),
 		{
-			**_section_break("mobile_app_product_section", "Details", "product_type"),
+			**_section_break("mobile_app_product_section", "Details", "mobile_app_product_type"),
 			"depends_on": DETAILS_SECTION_DEPENDS_ON,
 		},
 		_app_item_field(
@@ -137,75 +164,25 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
 		_app_item_field(
-			"active_ingredient",
-			"Active Ingredient",
+			"active_ingredients",
+			"Active Ingredients",
 			"Data",
 			"regulated_price",
 			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
-		_app_item_field("strength", "Strength", "Data", "active_ingredient", depends_on=DETAILS_SECTION_DEPENDS_ON),
+		_app_item_field("strength", "Strength", "Data", "active_ingredients", depends_on=DETAILS_SECTION_DEPENDS_ON),
 		_app_item_field("form", "Form", "Data", "strength", depends_on=DETAILS_SECTION_DEPENDS_ON),
 		_app_item_field("pack_size", "Pack Size", "Data", "form", depends_on=DETAILS_SECTION_DEPENDS_ON),
 		_app_item_field("manufacturer", "Manufacturer", "Data", "pack_size", depends_on=DETAILS_SECTION_DEPENDS_ON),
-		_app_item_field(
-			"country_of_origin",
-			"Country of Origin",
-			"Link",
-			"manufacturer",
-			options="Country",
-			depends_on=DETAILS_SECTION_DEPENDS_ON,
-		),
-		_app_item_field(
-			"refill_eligible",
-			"Refill Eligible",
-			"Check",
-			"country_of_origin",
-			default="0",
-			depends_on=DETAILS_SECTION_DEPENDS_ON,
-		),
-		_app_item_field(
-			"subscription_eligible",
-			"Subscription Eligible",
-			"Check",
-			"refill_eligible",
-			default="0",
-			depends_on=DETAILS_SECTION_DEPENDS_ON,
-		),
+		_column_break("mobile_app_details_column", "manufacturer"),
 		_app_item_field(
 			"min_patient_age",
 			"Min Patient Age",
 			"Int",
-			"subscription_eligible",
+			"mobile_app_details_column",
 			depends_on=DETAILS_SECTION_DEPENDS_ON,
 		),
 		_app_item_field("max_patient_age", "Max Patient Age", "Int", "min_patient_age", depends_on=DETAILS_SECTION_DEPENDS_ON),
-		_section_break("mobile_app_section", "App Experience", "product_type"),
-		_app_item_field(
-			"app_short_description",
-			"App Short Description",
-			"Small Text",
-			"mobile_app_section",
-		),
-		_app_item_field(
-			"app_long_description",
-			"App Long Description",
-			"Text Editor",
-			"app_short_description",
-		),
-		_app_item_field(
-			"search_keywords",
-			"Search Keywords",
-			"Small Text",
-			"app_long_description",
-			description="Comma-separated keywords used by the mobile app catalog search.",
-		),
-		_app_item_field(
-			"symptom_tags",
-			"Symptom Tags",
-			"Small Text",
-			"search_keywords",
-			description="Comma-separated symptom tags for app discovery and recommendations.",
-		),
 	],
 	"Item Group": [
 		{
@@ -226,6 +203,7 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"label": "Mobile App Icon",
 			"fieldtype": "Data",
 			"insert_after": "show_in_mobile_app",
+			"depends_on": SHOW_IN_APP_DEPENDS_ON,
 		},
 		{
 			"fieldname": "mobile_app_sort_order",
@@ -233,6 +211,7 @@ STANDARD_CUSTOM_FIELDS: dict[str, list[dict]] = {
 			"fieldtype": "Int",
 			"insert_after": "mobile_app_sf_symbol",
 			"default": "0",
+			"depends_on": SHOW_IN_APP_DEPENDS_ON,
 		},
 	],
 	"Mode of Payment": [

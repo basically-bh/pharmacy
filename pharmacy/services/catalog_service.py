@@ -16,22 +16,23 @@ PRODUCT_FIELDS = [
 	"name",
 	"item_name",
 	"item_group",
+	"brand",
+	"manufacturer",
+	"country_of_origin",
 	"image",
 	"description",
 	"stock_uom",
 	"disabled",
 	"show_in_mobile_app",
-	"product_type",
+	"mobile_app_product_type",
 	"requires_prescription",
 	"requires_pharmacist_review",
 	"nhra_registration_no",
 	"regulated_price",
-	"active_ingredient",
+	"active_ingredients",
 	"strength",
 	"form",
 	"pack_size",
-	"refill_eligible",
-	"subscription_eligible",
 	"min_patient_age",
 	"max_patient_age",
 	"featured",
@@ -56,7 +57,7 @@ def list_product_data(
 		"disabled": 0,
 	}
 	if product_type:
-		filters["product_type"] = product_type
+		filters["mobile_app_product_type"] = product_type
 	if featured is not None and str(featured) != "":
 		if str(featured).strip().lower() not in {"0", "1", "true", "false", "yes", "no", "on", "off"}:
 			raise_invalid_input(
@@ -152,7 +153,7 @@ def serialize_product_summary(
 		"item_group": product.item_group or None,
 		"short_description": product.app_short_description or product.description or None,
 		"image_url": product.image or None,
-		"product_type": product.product_type or None,
+		"mobile_app_product_type": product.product_type or None,
 		"requires_prescription": cbool(product.requires_prescription),
 		"requires_pharmacist_review": cbool(product.requires_pharmacist_review),
 		"featured": cbool(product.featured),
@@ -177,12 +178,15 @@ def serialize_product_detail(
 	)
 	data.update(
 		{
+			"brand": product.brand or None,
+			"manufacturer": product.manufacturer or None,
+			"country_of_origin": product.country_of_origin or None,
 			"description": {
 				"short": product.app_short_description or product.description or None,
 				"long": product.app_long_description or None,
 			},
 			"medical": {
-				"active_ingredient": product.active_ingredient or None,
+				"active_ingredients": product.active_ingredients or None,
 				"strength": product.strength or None,
 				"form": product.form or None,
 				"pack_size": product.pack_size or None,
@@ -192,8 +196,6 @@ def serialize_product_detail(
 			},
 			"fulfillment": {
 				"uom": product.stock_uom or None,
-				"refill_eligible": cbool(product.refill_eligible),
-				"subscription_eligible": cbool(product.subscription_eligible),
 			},
 			"discovery": {
 				"keywords": _split_csv(product.search_keywords),

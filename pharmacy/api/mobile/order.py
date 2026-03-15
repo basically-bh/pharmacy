@@ -4,7 +4,6 @@ import frappe
 
 from pharmacy.services.cart_service import (
 	add_item_to_cart as add_item_to_cart_data,
-	create_or_get_cart as create_or_get_cart_data,
 	get_cart as get_cart_data,
 	remove_item_from_cart as remove_item_from_cart_data,
 	update_cart_item_qty as update_cart_item_qty_data,
@@ -31,11 +30,6 @@ def get_order(order_id: str | None = None, id: str | None = None) -> dict:
 @frappe.whitelist(allow_guest=True)
 def get_cart() -> dict:
 	return execute_api(get_cart_data)
-
-
-@frappe.whitelist(allow_guest=True)
-def create_or_get_cart() -> dict:
-	return execute_api(create_or_get_cart_data)
 
 
 @frappe.whitelist(allow_guest=True)
